@@ -1,0 +1,36 @@
+{
+  "displayName": "Name Placeholder",
+  "columns": [
+    {
+      "name": "Phone Extension",
+      "text": { }
+    },
+    {
+        "name": "Status",
+        "text": { }
+    },
+    {
+        "name": "Number Type",
+        "text": { }
+    },
+    {
+        "name": "User Name",
+        "text": { }
+    },
+    {
+        "name": "User Principal Name",
+        "text": { }
+    },
+    {
+        "name": "Account Type",
+        "text": { }
+    },
+    {
+      "name": "Country",
+      "text": { }
+    }
+  ],
+  "list": {
+    "template": "genericList"
+  }
+}
