@@ -279,6 +279,3 @@ $body = @"
     }
 
 }
-
-
-or(and(not(equals(triggerOutputs()?['body/User_x0020_Principal_x0020_Name'], 'Unassigned')),not(contains(triggerBody(), 'UserProfile')), equals(triggerOutputs()?['body/Account_x0020_Type'], 'User Account')),not(equals(triggerOutputs()?['body/User_x0020_Principal_x0020_Name'],triggerOutputs()?['body/UserProfile']['Email'])))
