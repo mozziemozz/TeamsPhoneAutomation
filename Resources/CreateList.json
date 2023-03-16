@@ -28,6 +28,10 @@
     {
       "name": "Country",
       "text": { }
+    },
+    {
+      "name": "UserId",
+      "text": { }
     }
   ],
   "list": {
