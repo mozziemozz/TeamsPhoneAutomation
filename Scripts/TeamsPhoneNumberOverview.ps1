@@ -114,6 +114,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
     $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value $teamsPhoneUser.DisplayName
     $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" -Value $teamsPhoneUser.UserPrincipalName
     $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value $teamsPhoneUserType
+    $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value $teamsPhoneUser.Identity
     # $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "TeamsAdminCenter" -Value "https://admin.teams.microsoft.com/users/$($teamsPhoneUser.Identity)/account"
 
     $allTeamsPhoneUserDetails += $teamsPhoneUserDetails
@@ -164,6 +165,7 @@ foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$null -eq $_.Ass
     }
 
     $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value  $accountType
+    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value "Unassigned"
     # $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "TeamsAdminCenter" -Value $null
 
 
@@ -176,25 +178,26 @@ $directRoutingNumbers = $allDirectRoutingNumbers | Where-Object {$allTeamsPhoneU
 
 foreach ($directRoutingNumber in $directRoutingNumbers) {
 
-    $userDetails = New-Object -TypeName psobject
+    $directRoutingNumberDetails = New-Object -TypeName psobject
 
     $phoneNumber = $directRoutingNumber
 
     $country = . Get-CountryFromPrefix
 
-    $userDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $directRoutingNumber
-    $userDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
-    $userDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Unassigned"
-    $userDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value "DirectRouting"
-    $userDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $country
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $directRoutingNumber
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Unassigned"
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value "DirectRouting"
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $country
 
 
-    $userDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "Unassigned"
-    $userDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" "Unassigned"
-    $userDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value "User Account, Resource Account"
-    # $userDetails | Add-Member -MemberType NoteProperty -Name "TeamsAdminCenter" -Value $null
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "Unassigned"
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" "Unassigned"
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value "User Account, Resource Account"
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value "Unassigned"
+    # $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "TeamsAdminCenter" -Value $null
 
-    $allTeamsPhoneUserDetails += $userDetails
+    $allTeamsPhoneUserDetails += $directRoutingNumberDetails
 
 }
 
@@ -276,3 +279,6 @@ $body = @"
     }
 
 }
+
+
+or(and(not(equals(triggerOutputs()?['body/User_x0020_Principal_x0020_Name'], 'Unassigned')),not(contains(triggerBody(), 'UserProfile')), equals(triggerOutputs()?['body/Account_x0020_Type'], 'User Account')),not(equals(triggerOutputs()?['body/User_x0020_Principal_x0020_Name'],triggerOutputs()?['body/UserProfile']['Email'])))
