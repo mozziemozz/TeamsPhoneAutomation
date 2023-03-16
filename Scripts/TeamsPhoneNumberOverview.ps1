@@ -93,7 +93,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
             $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
         }
 
-        if ($allCsOnlineNumbers.PhoneNumber -contains $phoneNumber) {
+        if ($allCsOnlineNumbers.TelephoneNumber -contains $phoneNumber) {
 
             $numberType = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq ($teamsPhoneUser.LineUri).Replace("tel:","")}).NumberType
 
@@ -115,7 +115,6 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
     $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" -Value $teamsPhoneUser.UserPrincipalName
     $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value $teamsPhoneUserType
     $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value $teamsPhoneUser.Identity
-    # $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "TeamsAdminCenter" -Value "https://admin.teams.microsoft.com/users/$($teamsPhoneUser.Identity)/account"
 
     $allTeamsPhoneUserDetails += $teamsPhoneUserDetails
 
@@ -166,8 +165,6 @@ foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$null -eq $_.Ass
 
     $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value  $accountType
     $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value "Unassigned"
-    # $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "TeamsAdminCenter" -Value $null
-
 
     $allTeamsPhoneUserDetails += $csOnlineNumberDetails
 
@@ -195,7 +192,6 @@ foreach ($directRoutingNumber in $directRoutingNumbers) {
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" "Unassigned"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value "User Account, Resource Account"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value "Unassigned"
-    # $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "TeamsAdminCenter" -Value $null
 
     $allTeamsPhoneUserDetails += $directRoutingNumberDetails
 
@@ -225,8 +221,7 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
         $checkEntryObject | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value $checkEntry.fields.User_x0020_Name
         $checkEntryObject | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" -Value $checkEntry.fields.User_x0020_Principal_x0020_Name
         $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value $checkEntry.fields.Account_x0020_Type
-        # $checkEntryObject | Add-Member -MemberType NoteProperty -Name "TeamsAdminCenter" -Value $checkEntry.fields.TeamsAdminCenter
-
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "UserId" -Value $checkEntry.fields.UserId
 
         $compareObjects = ($checkEntryObject | Out-String) -eq ($teamsPhoneNumber | Out-String)
 
