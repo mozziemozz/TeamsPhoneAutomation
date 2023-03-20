@@ -207,7 +207,7 @@ $addDirectoryRoleBody = @"
 }
 "@
 
-$addSfBAdminRole = Invoke-RestMethod -Method Post -Headers $Header -ContentType "application/json" -Uri "https://graph.microsoft.com/v1.0/directoryRoles/$directoryRoleId/members/`$ref" -Body $addDirectoryRoleBody
+Invoke-RestMethod -Method Post -Headers $Header -ContentType "application/json" -Uri "https://graph.microsoft.com/v1.0/directoryRoles/$directoryRoleId/members/`$ref" -Body $addDirectoryRoleBody
 
 # Connect to Azure Account
 $checkAzureSession = Get-AzContext > $null
