@@ -1,13 +1,17 @@
-Set-Location C:\Temp\GitHub\TeamsPhoneAutomation
+Set-Location V:\Temp\GitHub\TeamsPhoneAutomation
 
 . .\Functions\Test-Admin.ps1
 
-$TenantId = Get-Content -Path .\.local\TenantId.txt
+$tenantId = Get-Content -Path .\.local\TenantId.txt | Out-String
 $automationAccountName = Get-Content -Path .\.local\AutomationAccountName.txt
 $resourceGroupName = Get-Content -Path .\.local\ResourceGroupName.txt
+$azLocation = Get-Content -Path .\.local\AzLocation.txt
+
+$groupId = Get-Content -Path .\.local\GroupId.txt | Out-String
 
 $scheduledRunbookTags = @{"Service"="Microsoft Teams";"RunbookType"="Scheduled"}
 $functionRunbookTags = @{"Service"="Azure Automation";"RunbookType"="Function"}
+$resourceGroupTags = @{"Service"="Azure Automation"}
 
 $installedModules = Get-InstalledModule
 
@@ -153,6 +157,7 @@ Write-Host "Client secret saved to \.local\AppSecret.txt in an encrypted state."
 $reviewClientSecret = Read-Host "Would you like to display the Client secret? [Y] / [N] ?"
 
 switch ($reviewClientSecret) {
+
     y {
 
         Write-Host "Here's your Client secret. It has been decrypted using this machine and user $($env:USERNAME). The client secret can only be decrypted on this machine with this account!" -ForegroundColor Cyan
@@ -171,10 +176,13 @@ switch ($reviewClientSecret) {
 
     }
     Default {}
+
 }
 
-$newAppObjectId = (($newAADApp | ConvertFrom-Json).objectId).Trim()
+# $newAppObjectId = (($newAADApp | ConvertFrom-Json).objectId).Trim()
 $newAppId = (($newAADApp | ConvertFrom-Json).appId).Trim()
+
+Set-Content -Path .\.local\AppId.txt -Value $newAppId -Force
 
 Write-Host "Adding the required Microsoft Graph permissions to $AADAppRegistrationName..." -ForegroundColor Cyan
 
@@ -209,6 +217,8 @@ $addDirectoryRoleBody = @"
 
 Invoke-RestMethod -Method Post -Headers $Header -ContentType "application/json" -Uri "https://graph.microsoft.com/v1.0/directoryRoles/$directoryRoleId/members/`$ref" -Body $addDirectoryRoleBody
 
+Read-Host "Checkpoint"
+
 # Connect to Azure Account
 $checkAzureSession = Get-AzContext > $null
 
@@ -230,7 +240,25 @@ if (!$checkAzureSession.TenantId -eq $tenantId) {
 
 }
 
-# Upload runbooks
+New-AzResourceGroup -Name $resourceGroupName -Location $azLocation -Tag $resourceGroupTags
+
+New-AzAutomationAccount -Name $automationAccountName -Location $azLocation -ResourceGroupName $resourceGroupName -Tags $resourceGroupTags
+
+# Upload variables
+
+$AppId = Get-Content -Path .\.local\AppId.txt | Out-String
+$AppSecret = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Get-Content -Path .\.local\AppSecret.txt | ConvertTo-SecureString)))
+
+New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_AppId" -Encrypted $false -Value $AppId -ResourceGroupName $resourceGroupName
+New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_AppSecret" -Encrypted $true -Value $AppSecret -ResourceGroupName $resourceGroupName
+
+New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_GroupId" -Encrypted $false -Value $groupId -ResourceGroupName $resourceGroupName
+New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_TenantId" -Encrypted $false -Value $tenantId -ResourceGroupName $resourceGroupName
+
+# Upload alldirectroutingnumbers
+# Upload Country Lookup Table
+
+# Upload function runbooks
 
 $functionRunbooks = Get-ChildItem -Path .\Functions
 
@@ -238,15 +266,19 @@ foreach ($functionRunbook in $functionRunbooks) {
 
     $newRunbook = Import-AzAutomationRunbook -Path $functionRunbook.FullName -Tags $functionRunbookTags -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -Type PowerShell -Name $($functionRunbook.Name.Replace(".ps1","")) -Published
 
-    if ($functionRunbook.Name -eq "Get-CsOnlineNumbers.ps1") {
-
-        $nextFullHour = (Get-Date).Hour
-        $startTime = (Get-Date "$($nextFullHour):00:00").ToUniversalTime().AddHours(2)
-
-        $newSchedule = New-AzAutomationSchedule -AutomationAccountName $automationAccountName -Name $functionRunbook.Name.Replace(".ps1","") -StartTime $StartTime -HourInterval 1 -ResourceGroupName $resourceGroupName -TimeZone "Etc/UTC"
-
-        Register-AzAutomationScheduledRunbook -RunbookName $newRunbook.Name -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -ScheduleName $newSchedule.Name
-
-    }
-
 }
+
+# Upload main runbook
+
+$mainRunbook = Get-ChildItem -Path .\Scripts\TeamsPhoneNumberOverview.ps1
+
+$newRunbook = Import-AzAutomationRunbook -Path $mainRunbook.FullName -Tags $scheduledRunbookTags -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -Type PowerShell -Name $($mainRunbook.Name.Replace(".ps1","")) -Published
+
+$nextFullHour = (Get-Date).Hour
+$startTime = (Get-Date "$($nextFullHour):00:00").ToUniversalTime().AddHours(2)
+
+# Upload schedule
+
+$newSchedule = New-AzAutomationSchedule -AutomationAccountName $automationAccountName -Name $functionRunbook.Name.Replace(".ps1","") -StartTime $StartTime -HourInterval 1 -ResourceGroupName $resourceGroupName -TimeZone "Etc/UTC"
+
+Register-AzAutomationScheduledRunbook -RunbookName $newRunbook.Name -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -ScheduleName $newSchedule.Name
