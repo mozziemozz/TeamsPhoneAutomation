@@ -1,23 +1,24 @@
 ﻿# Import external functions
-. .\Connect-MsTeamsServicePrincipal.ps1
-. .\Connect-MgGraphHTTP.ps1
-. .\Get-CountryFromPrefix.ps1
-. .\Get-CsOnlineNumbers.ps1
+. .\Functions\Connect-MsTeamsServicePrincipal.ps1
+. .\Functions\Connect-MgGraphHTTP.ps1
+. .\Functions\Get-CountryFromPrefixLocal.ps1
+. .\Functions\Get-CsOnlineNumbersLocal.ps1
 
-$MsListName =  Get-AutomationVariable -Name "TeamsPhoneNumberOverview_MsListName"
+$MsListName = "Teams Phone Number Overview Demo 44"
 
-$TenantId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_TenantId"
-$AppId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_AppId"
-$AppSecret = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_AppSecret"
+$TenantId = Get-Content -Path .\.local\TenantId.txt
+$AppId = Get-Content -Path .\.local\AppId.txt
+$AppSecret = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Get-Content -Path .\.local\AppSecret.txt | ConvertTo-SecureString))) | Out-String
 
-$groupId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_GroupId"
+
+$groupId = Get-Content -Path .\.local\GroupId.txt
 
 . Connect-MsTeamsServicePrincipal -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
 
 . Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
 
 # Import Direct Routing numbers
-$allDirectRoutingNumbers = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_DirectRoutingNumbers").Replace("'","") | ConvertFrom-Json
+$allDirectRoutingNumbers = Import-Csv -Path .\Resources\DirectRoutingNumbers.csv -Encoding UTF8
 
 # Add leading plus ("+") to all numbers
 $allDirectRoutingNumbers = $allDirectRoutingNumbers | ForEach-Object {"+" + $_.PhoneNumber}
@@ -42,7 +43,7 @@ else {
 
     Write-Output "A list with the name $MsListName does not exist in site $($sharePointSite.name). A new list will be created."
 
-    $createListJson = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_CreateList").Replace("Name Placeholder",$MsListName).Replace("'","")
+    $createListJson = (Get-Content -Path .\Resources\CreateList.json).Replace("Name Placeholder",$MsListName)
 
     $newSharePointList = Invoke-RestMethod -Method Post -Headers $Header -ContentType "application/json" -Body $createListJson -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists"
 
@@ -198,7 +199,7 @@ foreach ($directRoutingNumber in $directRoutingNumbers) {
 }
 
 # Get existing list items
-$sharePointListItems = (Invoke-RestMethod -Method Get -Headers $header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items?expand=fields").value.fields
+$sharePointListItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items?expand=fields").value.fields
 
 if ($sharePointListItems) {
 
@@ -227,7 +228,7 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
         $itemId = ($sharePointListItems | Where-Object {$_.Title -eq $teamsPhoneNumber.Title}).id
 
-        $checkEntry = (Invoke-RestMethod -Method Get -Headers $header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId`?expand=fields")
+        $checkEntry = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId`?expand=fields")
 
         $checkEntryObject = New-Object -TypeName psobject
 
@@ -247,7 +248,7 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
             # no differences
 
-            Write-Host "Entry $($teamsPhoneNumber.Title) is up to date..."
+            Write-Host "Entry $($teamsPhoneNumber.Title) is up to date..." -ForegroundColor Cyan
 
         }
 
@@ -255,7 +256,7 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
             # patch
 
-            Write-Host "Entry $($teamsPhoneNumber.Title) is NOT up to date..."
+            Write-Host "Entry $($teamsPhoneNumber.Title) is NOT up to date..." -ForegroundColor Magenta
 
 $body = @"
 {
@@ -266,7 +267,7 @@ $body = @"
                     $body += ($teamsPhoneNumber | ConvertTo-Json)
                     $body += "`n}"
             
-                    Invoke-RestMethod -Method Patch -Headers $header -ContentType "application/json" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId"
+                    Invoke-RestMethod -Method Patch -Headers $Header -ContentType "application/json" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId"
             
 
         }
@@ -287,7 +288,7 @@ $body = @"
         $body += ($teamsPhoneNumber | ConvertTo-Json)
         $body += "`n}"
 
-        Invoke-RestMethod -Method Post -Headers $header -ContentType "application/json" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items"
+        Invoke-RestMethod -Method Post -Headers $Header -ContentType "application/json" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items"
 
     }
 
