@@ -1,11 +1,29 @@
-# Import functions
-. .\Functions\Connect-MgGraphHTTP.ps1
+$banner = @"
+______   ______     ______     __    __     ______        __   __     __  __     __    __     ______     ______     ______        __         __     ______     ______  
+/\__  _\ /\  ___\   /\  __ \   /\ "-./  \   /\  ___\      /\ "-.\ \   /\ \/\ \   /\ "-./  \   /\  == \   /\  ___\   /\  == \      /\ \       /\ \   /\  ___\   /\__  _\ 
+\/_/\ \/ \ \  __\   \ \  __ \  \ \ \-./\ \  \ \___  \     \ \ \-.  \  \ \ \_\ \  \ \ \-./\ \  \ \  __<   \ \  __\   \ \  __<      \ \ \____  \ \ \  \ \___  \  \/_/\ \/ 
+   \ \_\  \ \_____\  \ \_\ \_\  \ \_\ \ \_\  \/\_____\     \ \_\\"\_\  \ \_____\  \ \_\ \ \_\  \ \_____\  \ \_____\  \ \_\ \_\     \ \_____\  \ \_\  \/\_____\    \ \_\ 
+    \/_/   \/_____/   \/_/\/_/   \/_/  \/_/   \/_____/      \/_/ \/_/   \/_____/   \/_/  \/_/   \/_____/   \/_____/   \/_/ /_/      \/_____/   \/_/   \/_____/     \/_/ 
+                                                                                                                                                                        
+"@
+
+Write-Host $banner -ForegroundColor DarkMagenta
+
+Write-Host "Press enter to start the deployment." -ForegroundColor Cyan
+Read-Host
 
 if (!(Test-Path -Path .\.local)) {
 
     New-Item -Path .\.local -ItemType Directory
 
 }
+
+$repoPath = Get-Content -Path C:\Temp\RepoPath.txt
+
+Set-Location -Path $repoPath
+
+# Import functions
+. .\Functions\Connect-MgGraphHTTP.ps1
 
 $newEnvironment = Get-Content .\Resources\Environment.json | ConvertFrom-Json
 
@@ -28,7 +46,7 @@ $requiredModules = @(
     "Az.Automation",
     "Az.Resources",
     "MicrosoftTeams"
-    
+
 )
 
 $missingModules = @()
@@ -78,9 +96,7 @@ if ($missingModules) {
 
     }
 
-    Write-Host "Finished installing required modules. Restatarting script now..." -ForegroundColor Cyan
-
-    . $myinvocation.MyCommand.Definition
+    Write-Host "Finished installing required modules." -ForegroundColor Cyan
     
 }
 
@@ -96,35 +112,6 @@ try {
 
         Write-Host "Node.JS is already installed." -ForegroundColor Green
 
-        if ($checkNPM -match "@pnp/cli-microsoft365") {
-
-            Write-Host "CLI for Microsoft 365 is already installed." -ForegroundColor Green
-
-        }
-
-        else {
-
-            Write-Host "CLI for Microsoft 365 is not installed." -ForegroundColor Yellow
-            Write-Host "Attempting to install CLI for Microsoft 365..." -ForegroundColor Cyan
-
-            npm i -g @pnp/cli-microsoft365
-
-            if ($?) {
-
-                Write-Host "Finished installing CLI for Microsoft 365. Restatarting script now..." -ForegroundColor Cyan
-
-                . $myinvocation.MyCommand.Definition        
-
-            }
-
-            else {
-
-                Write-Error -Message "Error installing CLI for Microsoft 365. Please install it manually."
-
-            }
-
-        }
-
     }
 
 }
@@ -139,12 +126,10 @@ catch {
 
     if ($?) {
 
-        Write-Host "Finished installing Node.JS. Restatarting script now..." -ForegroundColor Cyan
+        Write-Host "Finished installing Node.JS." -ForegroundColor Cyan
 
         # Reload path environment variable
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
-
-        . $myinvocation.MyCommand.Definition
 
     }
 
@@ -156,16 +141,49 @@ catch {
 
 }
 
-# Login to M365 CLI
-m365 login
+$checkNPM = npm list -g
+
+if ($checkNPM -match "@pnp/cli-microsoft365") {
+
+    Write-Host "CLI for Microsoft 365 is already installed." -ForegroundColor Green
+
+}
+
+else {
+
+    Write-Host "CLI for Microsoft 365 is not installed." -ForegroundColor Yellow
+    Write-Host "Attempting to install CLI for Microsoft 365..." -ForegroundColor Cyan
+
+    npm i -g @pnp/cli-microsoft365
+
+    if ($?) {
+
+        Write-Host "Finished installing CLI for Microsoft 365." -ForegroundColor Cyan
+
+        # Reload path environment variable
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+
+    }
+
+    else {
+
+        Write-Error -Message "Error installing CLI for Microsoft 365. Please install it manually."
+
+    }
+
+}
+
+
+# Login to npx m365 CLI
+npx m365 login
 
 $AADAppRegistrationName = "$automationAccountName" + "_AAD_SP"
 
-$newAADApp = m365 aad app add --name $AADAppRegistrationName --withSecret
+$newAADApp = npx m365 aad app add --name $AADAppRegistrationName --withSecret
 
 $encryptedClientSecret = ConvertTo-SecureString ($newAADApp | ConvertFrom-Json).secrets.value -AsPlainText -Force
 
-Set-Content -Path .\.local\AppSecret.txt -Value ($encryptedClientSecret | ConvertFrom-SecureString) -Force
+Set-Content -Path .\.local\AppSecret.txt -Value ($encryptedClientSecret | ConvertFrom-SecureString).TrimEnd() -Force
 
 Write-Host "Client secret saved to \.local\AppSecret.txt in an encrypted state." -ForegroundColor Cyan
 
@@ -194,32 +212,43 @@ switch ($reviewClientSecret) {
 
 }
 
-# $newAppObjectId = (($newAADApp | ConvertFrom-Json).objectId).Trim()
-$newAppId = (($newAADApp | ConvertFrom-Json).appId).Trim()
+# $newAppObjectId = (($newAADApp | ConvertFrom-Json).objectId).TrimEnd()
+$newAppId = (($newAADApp | ConvertFrom-Json).appId).TrimEnd()
 
-Set-Content -Path .\.local\AppId.txt -Value $newAppId -Force
+Set-Content -Path .\.local\AppId.txt -Value $newAppId.TrimEnd() -Force
 
 Write-Host "Adding the required Microsoft Graph permissions to $AADAppRegistrationName..." -ForegroundColor Cyan
 
-$newAADServicePrincipalObjectId = (m365 aad sp add --appId $newAppId | ConvertFrom-Json).Id
+$newAADServicePrincipalObjectId = ((npx m365 aad sp add --appId $newAppId | ConvertFrom-Json).Id).TrimEnd()
 
-m365 aad approleassignment add --resource "Microsoft Graph" --scope "Organization.Read.All" --appId $newAppId
-m365 aad approleassignment add --resource "Microsoft Graph" --scope "User.Read.All" --appId $newAppId
-m365 aad approleassignment add --resource "Microsoft Graph" --scope "Channel.Delete.All" --appId $newAppId
-m365 aad approleassignment add --resource "Microsoft Graph" --scope "ChannelSettings.ReadWrite.All" --appId $newAppId
-m365 aad approleassignment add --resource "Microsoft Graph" --scope "Group.ReadWrite.All" --appId $newAppId
-m365 aad approleassignment add --resource "Microsoft Graph" --scope "ChannelMember.ReadWrite.All" --appId $newAppId
-m365 aad approleassignment add --resource "Microsoft Graph" --scope "AppCatalog.ReadWrite.All" --appId $newAppId
-m365 aad approleassignment add --resource "Microsoft Graph" --scope "TeamSettings.ReadWrite.All" --appId $newAppId
-m365 aad approleassignment add --resource "Microsoft Graph" --scope "Sites.Manage.All" --appId $newAppId
-m365 aad approleassignment add --resource "Microsoft Graph" --scope "RoleManagement.ReadWrite.Directory" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "Organization.Read.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "User.Read.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "Channel.Delete.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "ChannelSettings.ReadWrite.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "Group.ReadWrite.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "ChannelMember.ReadWrite.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "AppCatalog.ReadWrite.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "TeamSettings.ReadWrite.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "Sites.Manage.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "RoleManagement.ReadWrite.Directory" --appId $newAppId
 
 $AppId = Get-Content -Path .\.local\AppId.txt | Out-String
 $AppSecret = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Get-Content -Path .\.local\AppSecret.txt | ConvertTo-SecureString))) | Out-String
 
-. Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+do {
+    
+    Write-Host "Sleeping for 30s to give Azure some time to apply the permissions..." -ForegroundColor Cyan
 
-$directoryRoleId = ((Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/directoryRoles/").value | Where-Object {$_.displayName -eq "Skype for Business Administrator"}).Id
+    Start-Sleep 30
+
+    . Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+
+    $directoryRoleId = ((Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/directoryRoles/").value | Where-Object {$_.displayName -eq "Skype for Business Administrator"}).Id
+
+} until (
+    ($?)
+)
+
 
 $addDirectoryRoleBody = @"
 {
@@ -228,8 +257,6 @@ $addDirectoryRoleBody = @"
 "@
 
 Invoke-RestMethod -Method Post -Headers $Header -ContentType "application/json" -Uri "https://graph.microsoft.com/v1.0/directoryRoles/$directoryRoleId/members/`$ref" -Body $addDirectoryRoleBody
-
-Read-Host "Checkpoint"
 
 # Connect to Azure Account
 $checkAzureSession = Get-AzContext > $null
@@ -321,3 +348,8 @@ $startTime = (Get-Date "$($nextFullHour):00:00").ToUniversalTime().AddHours(2)
 $newSchedule = New-AzAutomationSchedule -AutomationAccountName $automationAccountName -Name $functionRunbook.Name.Replace(".ps1","") -StartTime $StartTime -HourInterval 1 -ResourceGroupName $resourceGroupName -TimeZone "Etc/UTC"
 
 Register-AzAutomationScheduledRunbook -RunbookName $newRunbook.Name -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -ScheduleName $newSchedule.Name
+
+Remove-Item -Path C:\Temp\RepoPath.txt
+
+Write-Host "Finished provisioning Azure Automation Account! Press enter to exit." -ForegroundColor Cyan
+Read-Host
