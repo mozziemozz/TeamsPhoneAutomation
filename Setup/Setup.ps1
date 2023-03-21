@@ -1,7 +1,13 @@
 # Import functions
 . .\Functions\Connect-MgGraphHTTP.ps1
 
-$newEnvironment = Get-Content .\.local\Environment.json | ConvertFrom-Json
+if (!(Test-Path -Path .\.local)) {
+
+    New-Item -Path .\.local -ItemType Directory
+
+}
+
+$newEnvironment = Get-Content .\Resources\Environment.json | ConvertFrom-Json
 
 $tenantId = $newEnvironment.TenantId
 $automationAccountName = $newEnvironment.AutomationAccountName
@@ -22,7 +28,7 @@ $requiredModules = @(
     "Az.Automation",
     "Az.Resources",
     "MicrosoftTeams"
-
+    
 )
 
 $missingModules = @()

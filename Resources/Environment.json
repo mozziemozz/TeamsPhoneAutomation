@@ -1,0 +1,8 @@
+{
+    "TenantId": "4bffbf87-53a0-4fce-b58b-4179cb3a3b7d",
+    "GroupId": "aff7d27f-878d-422c-83bd-fe9b3903812f",
+    "MSListName": "Teams Phone Number Overview Demo",
+    "ResourceGroupName": "mzz-rmg-003",
+    "AutomationAccountName": "mzz-automation-account-003",
+    "AzLocation": "West Europe"
+}
