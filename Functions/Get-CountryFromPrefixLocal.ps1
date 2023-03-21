@@ -3,7 +3,7 @@ function Get-CountryFromPrefix {
         
     )
 
-    $prefixTable = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_CountryLookupTable").Replace("'","") | ConvertFrom-Json
+    $prefixTable = Get-Content -Path .\Resources\CountryLookupTable.json | ConvertFrom-Json
 
     $countryLookupResults = @()
 

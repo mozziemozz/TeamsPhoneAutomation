@@ -1,13 +1,14 @@
-Set-Location V:\Temp\GitHub\TeamsPhoneAutomation
+# Import functions
+. .\Functions\Connect-MgGraphHTTP.ps1
 
-. .\Functions\Test-Admin.ps1
+$newEnvironment = Get-Content .\.local\Environment.json | ConvertFrom-Json
 
-$tenantId = Get-Content -Path .\.local\TenantId.txt | Out-String
-$automationAccountName = Get-Content -Path .\.local\AutomationAccountName.txt
-$resourceGroupName = Get-Content -Path .\.local\ResourceGroupName.txt
-$azLocation = Get-Content -Path .\.local\AzLocation.txt
-
-$groupId = Get-Content -Path .\.local\GroupId.txt | Out-String
+$tenantId = $newEnvironment.TenantId
+$automationAccountName = $newEnvironment.AutomationAccountName
+$resourceGroupName = $newEnvironment.ResourceGroupName
+$azLocation = $newEnvironment.AzLocation
+$groupId = $newEnvironment.GroupId
+$MsListName = $newEnvironment.MSListName
 
 $scheduledRunbookTags = @{"Service"="Microsoft Teams";"RunbookType"="Scheduled"}
 $functionRunbookTags = @{"Service"="Azure Automation";"RunbookType"="Function"}
@@ -17,7 +18,10 @@ $installedModules = Get-InstalledModule
 
 $requiredModules = @(
 
-    "Az.Automation"
+    "Az.Accounts",
+    "Az.Automation",
+    "Az.Resources",
+    "MicrosoftTeams"
 
 )
 
@@ -42,6 +46,11 @@ foreach ($module in $requiredModules) {
 }
 
 if ($missingModules) {
+
+    function Test-Admin {
+        $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
+        $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+    }    
 
     if ((Test-Admin) -eq $false)  {
         if ($elevated) 
@@ -199,11 +208,8 @@ m365 aad approleassignment add --resource "Microsoft Graph" --scope "TeamSetting
 m365 aad approleassignment add --resource "Microsoft Graph" --scope "Sites.Manage.All" --appId $newAppId
 m365 aad approleassignment add --resource "Microsoft Graph" --scope "RoleManagement.ReadWrite.Directory" --appId $newAppId
 
-. .\Functions\Connect-MgGraphHTTP.ps1
-
-$TenantId = Get-Content -Path .\.local\TenantId.txt
-$AppId = Get-Content -Path .\.local\AppId.txt
-$AppSecret = Get-Content -Path .\.local\AppSecret.txt
+$AppId = Get-Content -Path .\.local\AppId.txt | Out-String
+$AppSecret = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Get-Content -Path .\.local\AppSecret.txt | ConvertTo-SecureString))) | Out-String
 
 . Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
 
@@ -244,10 +250,25 @@ New-AzResourceGroup -Name $resourceGroupName -Location $azLocation -Tag $resourc
 
 New-AzAutomationAccount -Name $automationAccountName -Location $azLocation -ResourceGroupName $resourceGroupName -Tags $resourceGroupTags
 
-# Upload variables
+$localTeamsPSVersion = (Get-InstalledModule -Name MicrosoftTeams).Version -join ""
 
-$AppId = Get-Content -Path .\.local\AppId.txt | Out-String
-$AppSecret = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Get-Content -Path .\.local\AppSecret.txt | ConvertTo-SecureString)))
+# Install MicrosoftTeams PowerShell Module in Automation Account
+New-AzAutomationModule -AutomationAccountName $automationAccountName -Name "MicrosoftTeams" -ContentLink "https://psg-prod-eastus.azureedge.net/packages/microsoftteams.$localTeamsPSVersion.nupkg" -ResourceGroupName $resourceGroupName
+
+do {
+
+    Write-Host "Checking if the module has finished importing. Next check in 1 minute..." -ForegroundColor Cyan
+
+    Start-Sleep 60
+
+    $checkModuleImportProgress = Get-AzAutomationModule -AutomationAccountName $automationAccountName -ResourceGroupName $resourceGroupName -Name "MicrosoftTeams"
+    
+} until (
+    $checkModuleImportProgress.ProvisioningState -eq "Succeeded"
+)
+
+
+# Upload variables
 
 New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_AppId" -Encrypted $false -Value $AppId -ResourceGroupName $resourceGroupName
 New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_AppSecret" -Encrypted $true -Value $AppSecret -ResourceGroupName $resourceGroupName
@@ -255,12 +276,24 @@ New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "Te
 New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_GroupId" -Encrypted $false -Value $groupId -ResourceGroupName $resourceGroupName
 New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_TenantId" -Encrypted $false -Value $tenantId -ResourceGroupName $resourceGroupName
 
-# Upload alldirectroutingnumbers
 # Upload Country Lookup Table
+$countryLookupTable = "'" + (Get-Content -Path .\Resources\CountryLookupTable.json | Out-String) + "'"
+New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_CountryLookupTable" -Encrypted $false -Value $countryLookupTable -ResourceGroupName $resourceGroupName
+
+# Upload Country Lookup Table
+$createListJson = "'" + (Get-Content -Path .\Resources\CreateList.json | Out-String) + "'"
+New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_CreateList" -Encrypted $false -Value $createListJson -ResourceGroupName $resourceGroupName
+
+# Upload alldirectroutingnumbers
+$directRoutingNumbers = "'" + (Import-Csv -Path .\Resources\DirectRoutingNumbers.csv | ConvertTo-Json | Out-String) + "'"
+New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_DirectRoutingNumbers" -Encrypted $false -Value $directRoutingNumbers -ResourceGroupName $resourceGroupName
+
+# Upload MS List name
+New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "TeamsPhoneNumberOverview_MsListName" -Encrypted $false -Value $MsListName -ResourceGroupName $resourceGroupName
 
 # Upload function runbooks
 
-$functionRunbooks = Get-ChildItem -Path .\Functions
+$functionRunbooks = Get-ChildItem -Path .\Functions | Where-Object {$_.Name -notmatch "Local"}
 
 foreach ($functionRunbook in $functionRunbooks) {
 

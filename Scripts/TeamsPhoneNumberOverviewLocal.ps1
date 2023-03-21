@@ -1,23 +1,23 @@
 ﻿# Import external functions
-. .\Connect-MsTeamsServicePrincipal.ps1
-. .\Connect-MgGraphHTTP.ps1
-. .\Get-CountryFromPrefix.ps1
-. .\Get-CsOnlineNumbers.ps1
+. .\Functions\Connect-MsTeamsServicePrincipal.ps1
+. .\Functions\Connect-MgGraphHTTP.ps1
+. .\Functions\Get-CountryFromPrefix.ps1
+. .\Functions\Get-CsOnlineNumbers.ps1
 
-$MsListName =  Get-AutomationVariable -Name "TeamsPhoneNumberOverview_MsListName"
+$MsListName = "Teams Phone Number Overview 3"
 
-$TenantId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_TenantId"
-$AppId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_AppId"
-$AppSecret = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_AppSecret"
+$TenantId = Get-Content -Path .\.local\TenantId.txt
+$AppId = Get-Content -Path .\.local\AppId.txt
+$AppSecret = Get-Content -Path .\.local\AppSecret.txt
 
-$groupId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_GroupId"
+$groupId = Get-Content -Path .\.local\GroupId.txt
 
 . Connect-MsTeamsServicePrincipal -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
 
 . Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
 
 # Import Direct Routing numbers
-$allDirectRoutingNumbers = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_DirectRoutingNumbers").Replace("'","") | ConvertFrom-Json
+$allDirectRoutingNumbers = Import-Csv -Path .\Resources\DirectRoutingNumbers.csv -Encoding UTF8
 
 # Add leading plus ("+") to all numbers
 $allDirectRoutingNumbers = $allDirectRoutingNumbers | ForEach-Object {"+" + $_.PhoneNumber}
@@ -42,7 +42,7 @@ else {
 
     Write-Output "A list with the name $MsListName does not exist in site $($sharePointSite.name). A new list will be created."
 
-    $createListJson = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_CreateList").Replace("Name Placeholder",$MsListName).Replace("'","")
+    $createListJson = (Get-Content -Path .\Resources\CreateList.json).Replace("Name Placeholder",$MsListName)
 
     $newSharePointList = Invoke-RestMethod -Method Post -Headers $Header -ContentType "application/json" -Body $createListJson -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists"
 
