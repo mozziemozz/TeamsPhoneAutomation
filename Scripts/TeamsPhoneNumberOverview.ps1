@@ -198,7 +198,33 @@ foreach ($directRoutingNumber in $directRoutingNumbers) {
 }
 
 # Get existing list items
-$sharePointListItems = (Invoke-RestMethod -Method Get -Headers $header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items?expand=fields").value.fields
+$sharePointListItems = @()
+
+$querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items?expand=fields")
+$sharePointListItems += $querriedItems.value.fields
+
+if ($querriedItems.'@odata.nextLink') {
+
+    Write-Output "List contains more than $($querriedItems.value.Count) itesm. Querrying additional items..."
+
+    do {
+
+        $querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri $querriedItems.'@odata.nextLink')
+        $sharePointListItems += $querriedItems.value.fields
+        
+    } until (
+        !$querriedItems.'@odata.nextLink'
+    )
+
+}
+
+else {
+
+    Write-Output "All items were retrieved in the first request."
+
+}
+
+Write-Output "Finished retrieving $($sharePointListItems.Count) items."
 
 if ($sharePointListItems) {
 
@@ -206,13 +232,11 @@ if ($sharePointListItems) {
     
         if ($spoPhoneNumber.Title -notin $allTeamsPhoneUserDetails.Title) {
 
-            Write-Host "Entry $($spoPhoneNumber.Title) is no longer available. It will be removed from the list..." -ForegroundColor Magenta
+            Write-Output "Entry $($spoPhoneNumber.Title) is no longer available. It will be removed from the list..."
 
             Invoke-RestMethod -Method Delete -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$($spoPhoneNumber.id)"
 
         }
-
-        Read-Host
 
     }
 
@@ -247,7 +271,7 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
             # no differences
 
-            Write-Host "Entry $($teamsPhoneNumber.Title) is up to date..."
+            Write-Output "Entry $($teamsPhoneNumber.Title) is up to date..."
 
         }
 
@@ -255,7 +279,7 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
             # patch
 
-            Write-Host "Entry $($teamsPhoneNumber.Title) is NOT up to date..."
+            Write-Output "Entry $($teamsPhoneNumber.Title) is NOT up to date..."
 
 $body = @"
 {

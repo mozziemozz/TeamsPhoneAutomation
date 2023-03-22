@@ -1,5 +1,5 @@
 $banner = @"
-______   ______     ______     __    __     ______        __   __     __  __     __    __     ______     ______     ______        __         __     ______     ______  
+ ______   ______     ______     __    __     ______        __   __     __  __     __    __     ______     ______     ______        __         __     ______     ______  
 /\__  _\ /\  ___\   /\  __ \   /\ "-./  \   /\  ___\      /\ "-.\ \   /\ \/\ \   /\ "-./  \   /\  == \   /\  ___\   /\  == \      /\ \       /\ \   /\  ___\   /\__  _\ 
 \/_/\ \/ \ \  __\   \ \  __ \  \ \ \-./\ \  \ \___  \     \ \ \-.  \  \ \ \_\ \  \ \ \-./\ \  \ \  __<   \ \  __\   \ \  __<      \ \ \____  \ \ \  \ \___  \  \/_/\ \/ 
    \ \_\  \ \_____\  \ \_\ \_\  \ \_\ \ \_\  \/\_____\     \ \_\\"\_\  \ \_____\  \ \_\ \ \_\  \ \_____\  \ \_____\  \ \_\ \_\     \ \_____\  \ \_\  \/\_____\    \ \_\ 
@@ -7,7 +7,7 @@ ______   ______     ______     __    __     ______        __   __     __  __    
                                                                                                                                                                         
 "@
 
-Write-Host $banner -ForegroundColor DarkMagenta
+Write-Host $banner -ForegroundColor DarkCyan
 
 Write-Host "Press enter to start the deployment." -ForegroundColor Cyan
 Read-Host
@@ -56,6 +56,43 @@ foreach ($module in $requiredModules) {
     if ($installedModules.Name -contains $module) {
 
         Write-Host "$module is already installed." -ForegroundColor Green
+
+        if ($module -eq "MicrosoftTeams") {
+
+            $localTeamsPSVersionMajor = (Get-InstalledModule -Name MicrosoftTeams).Version.Major
+
+            if ($localTeamsPSVersionMajor -lt 5) {
+
+                Write-Warning -Message "The installed version of $module is older than 5.0.0. $module will be updated."
+
+                function Test-Admin {
+                    $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
+                    $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+                }    
+            
+                if ((Test-Admin) -eq $false)  {
+                    if ($elevated) 
+                    {
+                        # tried to elevate, did not work, aborting
+                    } 
+                    else {
+                        Start-Process powershell.exe -Verb RunAs -ArgumentList ('-noprofile -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
+                }
+                
+                    exit
+                }
+
+                Update-Module -Name "MicrosoftTeams" -Force
+
+            }
+
+            else {
+                
+                Write-Host "$module version is new enough for Service Principal Authentication." -ForegroundColor Green
+
+            }
+
+        }
 
     }
 
