@@ -1,34 +1,105 @@
-﻿# Import external functions
-. .\Connect-MsTeamsServicePrincipal.ps1
-. .\Connect-MgGraphHTTP.ps1
-. .\Get-CountryFromPrefix.ps1
-. .\Get-CsOnlineNumbers.ps1
+﻿$localTestMode = $true
 
-$MsListName =  Get-AutomationVariable -Name "TeamsPhoneNumberOverview_MsListName"
+function Get-AllSPOListItems {
+    param (
+        
+    )
+    
+        # Get existing list items
+        $sharePointListItems = @()
 
-$TenantId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_TenantId"
-$AppId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_AppId"
-$AppSecret = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_AppSecret"
+        $querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items?expand=fields")
+        $sharePointListItems += $querriedItems.value.fields
+    
+        if ($querriedItems.'@odata.nextLink') {
+    
+            Write-Output "List contains more than $($querriedItems.value.Count) itesm. Querrying additional items..."
+    
+            do {
+    
+                $querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri $querriedItems.'@odata.nextLink')
+                $sharePointListItems += $querriedItems.value.fields
+                
+            } until (
+                !$querriedItems.'@odata.nextLink'
+            )
+    
+        }
+    
+        else {
+    
+            Write-Output "All items were retrieved in the first request."
+    
+        }
+    
+        Write-Output "Finished retrieving $($sharePointListItems.Count) items."
+    
+}
 
-$groupId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_GroupId"
+switch ($localTestMode) {
+    $true {
+
+        # Local Environment
+
+        # Import external functions
+        . .\Functions\Connect-MsTeamsServicePrincipal.ps1
+        . .\Functions\Connect-MgGraphHTTP.ps1
+        . .\Functions\Get-CountryFromPrefix.ps1
+        . .\Functions\Get-CsOnlineNumbers.ps1
+
+        # Import variables
+        $MsListName = "Teams Phone Number Demo 10"
+        $TenantId = Get-Content -Path .\.local\TenantId.txt
+        $AppId = Get-Content -Path .\.local\AppId.txt
+        $AppSecret = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Get-Content -Path .\.local\AppSecret.txt | ConvertTo-SecureString))) | Out-String
+        $groupId = Get-Content -Path .\.local\GroupId.txt
+
+        # Import Direct Routing numbers
+        $allDirectRoutingNumbers = Import-Csv -Path .\Resources\DirectRoutingNumbers.csv -Encoding UTF8
+        
+    }
+
+    $false {
+
+        # Azure Automation
+
+        # Import external functions
+        . .\Connect-MsTeamsServicePrincipal.ps1
+        . .\Connect-MgGraphHTTP.ps1
+        . .\Get-CountryFromPrefix.ps1
+        . .\Get-CsOnlineNumbers.ps1
+
+        # Import variables        
+        $MsListName =  Get-AutomationVariable -Name "TeamsPhoneNumberOverview_MsListName"
+        $TenantId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_TenantId"
+        $AppId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_AppId"
+        $AppSecret = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_AppSecret"
+        $groupId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_GroupId"
+
+        # Import Direct Routing numbers
+        $allDirectRoutingNumbers = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_DirectRoutingNumbers").Replace("'","") | ConvertFrom-Json
+
+    }
+    Default {}
+}
 
 . Connect-MsTeamsServicePrincipal -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
 
 . Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
 
-# Import Direct Routing numbers
-$allDirectRoutingNumbers = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_DirectRoutingNumbers").Replace("'","") | ConvertFrom-Json
-
-# Add leading plus ("+") to all numbers
-$allDirectRoutingNumbers = $allDirectRoutingNumbers | ForEach-Object {"+" + $_.PhoneNumber}
-
-# Get CsOnline Numbers
-$allCsOnlineNumbers = . Get-CsOnlineNumbers
-
 # Get existing SharePoint lists for group id
 $sharePointSite = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/groups/$groupId/sites/root")
 
 $existingSharePointLists = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists").value
+
+
+# https://mozzism.sharepoint.com/sites/AzureAutomation/_catalogs/users/simple.aspx
+
+$userInformationListId = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?`$filter=displayName eq 'Benutzerinformationsliste'").value.id
+
+$userInformationList = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$userInformationListId/items?expand=fields").value.fields
+
+$userLookupIds = $userInformationList | Select-Object Username,UserSelection
 
 if ($existingSharePointLists.name -contains $MsListName) {
 
@@ -42,21 +113,102 @@ else {
 
     Write-Output "A list with the name $MsListName does not exist in site $($sharePointSite.name). A new list will be created."
 
-    $createListJson = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_CreateList").Replace("Name Placeholder",$MsListName).Replace("'","")
+    switch ($localTestMode) {
+        $true {
+    
+            # Local Environment
+    
+            $createListJson = (Get-Content -Path .\Resources\CreateList.json).Replace("Name Placeholder",$MsListName)
+            
+        }
+    
+        $false {
+    
+            # Azure Automation
+    
+            $createListJson = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_CreateList").Replace("Name Placeholder",$MsListName).Replace("'","")
 
+        }
+        Default {}
+    }
+    
     $newSharePointList = Invoke-RestMethod -Method Post -Headers $Header -ContentType "application/json" -Body $createListJson -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists"
 
     $sharePointListId = $newSharePointList.id
 
 }
 
+. Get-AllSPOListItems
+
+if ($sharePointListItems) {
+
+    # Unassign numbers
+
+    foreach ($reservedNumber in ($sharePointListItems | Where-Object {$_.Status -eq "Remove Pending" -and $_.User_x0020_Principal_x0020_Name -ne "Unassigned"})) {
+
+        Write-Output "Trying to remove the number $($reservedNumber.Title) from user $($reservedNumber.User_x0020_Principal_x0020_Name)..."
+
+        Remove-CsPhoneNumberAssignment -Identity $reservedNumber.User_x0020_Principal_x0020_Name -RemoveAll
+
+    }
+
+    # Assign reserved numbers
+
+    foreach ($reservedNumber in ($sharePointListItems | Where-Object {$_.Status -eq "Reserved" -and $_.UserProfileLookupId -ne $null})) {
+
+        $userPrincipalName = ($userLookupIds | Where-Object {$_.UserSelection -eq $reservedNumber.UserProfileLookupId}).Username
+
+        $checkCsOnlineUser = (Get-CsOnlineUser -Identity $userPrincipalName)
+
+        if ($checkCsOnlineUser.LineURI) {
+
+            $checkCsOnlineUserLineURI = $checkCsOnlineUser.LineURI.Replace("tel:","")
+
+            if ($checkCsOnlineUserLineURI -ne $reservedNumber.Title) {
+
+                Write-Output "User $userPrincipalName already has $checkCsOnlineUserLineURI assigned. Number will be removed and replaced with $($reservedNumber.Title)"
+    
+                Remove-CsPhoneNumberAssignment -Identity $userPrincipalName -RemoveAll
+    
+            }
+    
+            if ($checkCsOnlineUserLineURI -eq $reservedNumber.Title) {
+    
+                Write-Output "Reserved number $($reservedNumber.Title) is already assigned to $userPrincipalName."
+    
+            }    
+
+        }
+
+        else {
+
+            Write-Output "Trying to assign reserved number $($reservedNumber.Title) to user $userPrincipalName..."
+
+            Set-CsPhoneNumberAssignment -Identity $userPrincipalName -PhoneNumberType $reservedNumber.Number_x0020_Type -PhoneNumber $reservedNumber.Title
+
+        }
+
+    }
+    
+}
+
+# Add leading plus ("+") to all numbers
+$allDirectRoutingNumbers = $allDirectRoutingNumbers | ForEach-Object {"+" + $_.PhoneNumber}
+
+# Get CsOnline Numbers
+$allCsOnlineNumbers = . Get-CsOnlineNumbers
+
 # Get all Teams users which have a phone number assigned
 $allTeamsPhoneUsers = Get-CsOnlineUser -Filter "LineURI -ne `$null"
 
 $allTeamsPhoneUserDetails = @()
 
+$userCounter = 1
+
 foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
+    Write-Output "Working on $userCounter/$($allTeamsPhoneUsers.Count)..."
+    
     $teamsPhoneUserDetails = New-Object -TypeName psobject
 
     if ($teamsPhoneUser.FeatureTypes -contains "VoiceApp") {
@@ -74,8 +226,6 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
     if ($teamsPhoneUser.LineUri) {
 
         $phoneNumber = $teamsPhoneUser.LineUri.Replace("tel:","")
-
-        $country = . Get-CountryFromPrefix
 
         if ($teamsPhoneUser.LineUri -match ";") {
 
@@ -95,17 +245,40 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         if ($allCsOnlineNumbers.TelephoneNumber -contains $phoneNumber) {
 
-            $numberType = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq ($teamsPhoneUser.LineUri).Replace("tel:","")}).NumberType
+            $matchingCsOnlineNumber = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq ($teamsPhoneUser.LineUri).Replace("tel:","")})
+
+            $numberType = $matchingCsOnlineNumber.NumberType
+            $city = $matchingCsOnlineNumber.City
+
+            if ($matchingCsOnlineNumber.IsoCountryCode) {
+                
+                $country = $matchingCsOnlineNumber.IsoCountryCode
+
+            }
+
+            else {
+
+                $country = . Get-CountryFromPrefix
+
+            }
 
         }
 
         else {
 
+            $assignedDirectRoutingNumberCity = (Get-CsPhoneNumberAssignment -TelephoneNumber $($teamsPhoneUser.LineUri).Replace("tel:","")).City
+
             $numberType = "DirectRouting"
+            $city = $assignedDirectRoutingNumberCity
+
+            $country = . Get-CountryFromPrefix
 
         }
+
+
         $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Assigned"
         $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $numberType
+        $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "City" -Value $city
         $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $country
 
 
@@ -115,6 +288,8 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
     $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" -Value $teamsPhoneUser.UserPrincipalName
     $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value $teamsPhoneUserType
     $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value $teamsPhoneUser.Identity
+
+    $userCounter ++
 
     $allTeamsPhoneUserDetails += $teamsPhoneUserDetails
 
@@ -127,13 +302,12 @@ foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$null -eq $_.Ass
 
     $phoneNumber = $csOnlineNumber.TelephoneNumber
 
-    $country = . Get-CountryFromPrefix
-
     $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $phoneNumber
     $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
     $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Unassigned"
     $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $csOnlineNumber.NumberType
-    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $country
+    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "City" -Value $csOnlineNumber.City
+    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $csOnlineNumber.IsoCountryCode
 
 
     $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "Unassigned"
@@ -185,8 +359,8 @@ foreach ($directRoutingNumber in $directRoutingNumbers) {
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Unassigned"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value "DirectRouting"
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "City" -Value "N/A"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $country
-
 
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "Unassigned"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" "Unassigned"
@@ -196,35 +370,6 @@ foreach ($directRoutingNumber in $directRoutingNumbers) {
     $allTeamsPhoneUserDetails += $directRoutingNumberDetails
 
 }
-
-# Get existing list items
-$sharePointListItems = @()
-
-$querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items?expand=fields")
-$sharePointListItems += $querriedItems.value.fields
-
-if ($querriedItems.'@odata.nextLink') {
-
-    Write-Output "List contains more than $($querriedItems.value.Count) itesm. Querrying additional items..."
-
-    do {
-
-        $querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri $querriedItems.'@odata.nextLink')
-        $sharePointListItems += $querriedItems.value.fields
-        
-    } until (
-        !$querriedItems.'@odata.nextLink'
-    )
-
-}
-
-else {
-
-    Write-Output "All items were retrieved in the first request."
-
-}
-
-Write-Output "Finished retrieving $($sharePointListItems.Count) items."
 
 if ($sharePointListItems) {
 
@@ -243,27 +388,39 @@ if ($sharePointListItems) {
 }
 
 # Update list
+
+$updateCounter = 1
+
 foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
-    if ($sharePointListItems.Title -contains $teamsPhoneNumber."Title" -and $teamsPhoneNumber."Title" -ne "Unassigned") {
+    Write-Output "Working on $updateCounter/$($allTeamsPhoneUserDetails.Count)..."
+
+    # if ($sharePointListItems.Title -contains $teamsPhoneNumber."Title" -and $teamsPhoneNumber."Title" -ne "Unassigned") {
+
+    if ($sharePointListItems.Title -contains $teamsPhoneNumber."Title") {
 
         # entry already existis in list checking if data is up to date
 
-        $itemId = ($sharePointListItems | Where-Object {$_.Title -eq $teamsPhoneNumber.Title}).id
+        # $itemId = ($sharePointListItems | Where-Object {$_.Title -eq $teamsPhoneNumber.Title}).id
 
-        $checkEntry = (Invoke-RestMethod -Method Get -Headers $header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId`?expand=fields")
+        # $checkEntry = (Invoke-RestMethod -Method Get -Headers $header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId`?expand=fields")
+
+        $checkEntry = ($sharePointListItems | Where-Object {$_.Title -eq $teamsPhoneNumber.Title})
+
+        $itemId = $checkEntry.id
 
         $checkEntryObject = New-Object -TypeName psobject
 
-        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Title" -Value $checkEntry.fields.Title
-        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value $checkEntry.fields.Phone_x0020_Extension
-        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Status" -Value $checkEntry.fields.Status
-        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $checkEntry.fields.Number_x0020_Type
-        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Country" -Value $checkEntry.fields.Country
-        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value $checkEntry.fields.User_x0020_Name
-        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" -Value $checkEntry.fields.User_x0020_Principal_x0020_Name
-        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value $checkEntry.fields.Account_x0020_Type
-        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "UserId" -Value $checkEntry.fields.UserId
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Title" -Value $checkEntry.Title
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value $checkEntry.Phone_x0020_Extension
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Status" -Value $checkEntry.Status
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $checkEntry.Number_x0020_Type
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "City" -Value $checkEntry.City
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Country" -Value $checkEntry.Country
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value $checkEntry.User_x0020_Name
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" -Value $checkEntry.User_x0020_Principal_x0020_Name
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value $checkEntry.Account_x0020_Type
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "UserId" -Value $checkEntry.UserId
 
         $compareObjects = ($checkEntryObject | Out-String) -eq ($teamsPhoneNumber | Out-String)
 
@@ -277,21 +434,30 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
         else {
 
-            # patch
+            if ($checkEntry.Status -eq "Reserved" -and $teamsPhoneNumber.Status -eq "Unassigned") {
 
-            Write-Output "Entry $($teamsPhoneNumber.Title) is NOT up to date..."
+                Write-Output "Entry $($teamsPhoneNumber.Title) is reserved and will not be updated..."
+
+            }
+
+            else {
+
+                # patch
+
+                Write-Output "Entry $($teamsPhoneNumber.Title) is NOT up to date..."
 
 $body = @"
 {
 "fields": 
 
 "@
+        
+                $body += ($teamsPhoneNumber | ConvertTo-Json)
+                $body += "`n}"
+        
+                Invoke-RestMethod -Method Patch -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId"
             
-                    $body += ($teamsPhoneNumber | ConvertTo-Json)
-                    $body += "`n}"
-            
-                    Invoke-RestMethod -Method Patch -Headers $header -ContentType "application/json" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId"
-            
+            }
 
         }
 
@@ -301,6 +467,7 @@ $body = @"
 
         # entry does not exist in list
 
+        Write-Output "Entry $($teamsPhoneNumber.Title) is NEW..."
 
         $body = @"
 {
@@ -311,8 +478,12 @@ $body = @"
         $body += ($teamsPhoneNumber | ConvertTo-Json)
         $body += "`n}"
 
-        Invoke-RestMethod -Method Post -Headers $header -ContentType "application/json" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items"
+        Invoke-RestMethod -Method Post -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items"
 
     }
+
+    $updateCounter ++
+
+    # Read-Host
 
 }

@@ -3,7 +3,24 @@ function Get-CountryFromPrefix {
         
     )
 
-    $prefixTable = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_CountryLookupTable").Replace("'","") | ConvertFrom-Json
+    switch ($localTestMode) {
+        $true {
+    
+            # Local Environment
+            
+            $prefixTable = Get-Content -Path .\Resources\CountryLookupTable.json | ConvertFrom-Json
+            
+        }
+    
+        $false {
+    
+            # Azure Automation
+            
+            $prefixTable = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_CountryLookupTable").Replace("'","") | ConvertFrom-Json
+    
+        }
+        Default {}
+    }
 
     $countryLookupResults = @()
 
@@ -30,7 +47,7 @@ function Get-CountryFromPrefix {
     }
     
     $country = ($prefixTable | Where-Object {$_.Prefix -eq $countryLookupResult}).Country
-    $country = (Get-Culture).TextInfo.ToTitleCase($country.ToLower())
+    # $country = (Get-Culture).TextInfo.ToTitleCase($country.ToLower())
 
     return $country
     
