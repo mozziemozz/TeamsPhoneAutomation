@@ -176,6 +176,14 @@ if ($sharePointListItems) {
     
                 Write-Output "Reserved number $($reservedNumber.Title) is already assigned to $userPrincipalName."
     
+            }
+
+            else {
+
+                Write-Output "Trying to assign reserved number $($reservedNumber.Title) to user $userPrincipalName..."
+    
+                Set-CsPhoneNumberAssignment -Identity $userPrincipalName -PhoneNumberType $reservedNumber.Number_x0020_Type -PhoneNumber $reservedNumber.Title
+    
             }    
 
         }
