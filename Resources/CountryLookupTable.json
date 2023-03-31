@@ -789,7 +789,8 @@
     },
     {
         "Prefix":  "+41",
-        "Country":  "CH"
+        "Country":  "CH",
+        "VoiceRoutingPolicy" : "Netvoip"
     },
     {
         "Prefix":  "+963",

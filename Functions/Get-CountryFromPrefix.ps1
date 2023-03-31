@@ -47,6 +47,7 @@ function Get-CountryFromPrefix {
     }
     
     $country = ($prefixTable | Where-Object {$_.Prefix -eq $countryLookupResult}).Country
+    $voiceRoutingPolicy = ($prefixTable | Where-Object {$_.Prefix -eq $countryLookupResult}).VoiceRoutingPolicy
     # $country = (Get-Culture).TextInfo.ToTitleCase($country.ToLower())
 
     return $country

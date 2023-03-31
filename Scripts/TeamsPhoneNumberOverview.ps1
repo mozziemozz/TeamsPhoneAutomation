@@ -175,14 +175,14 @@ if ($sharePointListItems) {
             if ($checkCsOnlineUserLineURI -eq $reservedNumber.Title) {
     
                 Write-Output "Reserved number $($reservedNumber.Title) is already assigned to $userPrincipalName."
+
+                $assignReservedNumber = $false
     
             }
 
             else {
 
-                Write-Output "Trying to assign reserved number $($reservedNumber.Title) to user $userPrincipalName..."
-    
-                Set-CsPhoneNumberAssignment -Identity $userPrincipalName -PhoneNumberType $reservedNumber.Number_x0020_Type -PhoneNumber $reservedNumber.Title
+                $assignReservedNumber = $true
     
             }    
 
@@ -190,9 +190,140 @@ if ($sharePointListItems) {
 
         else {
 
-            Write-Output "Trying to assign reserved number $($reservedNumber.Title) to user $userPrincipalName..."
+            $assignReservedNumber = $true
 
-            Set-CsPhoneNumberAssignment -Identity $userPrincipalName -PhoneNumberType $reservedNumber.Number_x0020_Type -PhoneNumber $reservedNumber.Title
+        }
+
+        if ($assignReservedNumber -eq $true) {
+
+            Write-Output "Checking License and Usage Location for user $userPrincipalName..."
+
+            switch ($reservedNumber.Number_x0020_Type) {
+                CallingPlan {
+
+                    # Check if user has Calling Plan license, no need for Teams Phone Standard Check because CP requires Teams Phone Standard
+                    if ($checkCsOnlineUser.FeatureTypes -contains "CallingPlan") {
+
+                        $licenseCheckSuccess = $true
+
+                    }
+
+                    else {
+
+                        $licenseCheckSuccess = $false
+
+                    }
+
+                    if ($checkCsOnlineUser.UsageLocation -eq $reservedNumber.Country) {
+
+                        $usageLocationCheck = $true
+
+                    }
+
+                    else {
+
+                        $usageLocationCheck = $false
+
+                    }
+
+                    $assignVoiceRoutingPolicy = $false
+
+                }
+
+                OperatorConnect {
+
+                    # Check if user has Teams Phone Standard License
+                    if ($checkCsOnlineUser.FeatureTypes -contains "PhoneSystem") {
+
+                        $licenseCheckSuccess = $true
+
+                        if ($checkCsOnlineUser.UsageLocation -eq $reservedNumber.Country) {
+
+                            $usageLocationCheck = $true
+
+                        }
+
+                        else {
+
+                            $usageLocationCheck = $false
+
+                        }
+
+
+                    }
+
+                    else {
+
+                        $licenseCheckSuccess = $false
+
+                    }
+
+                    $assignVoiceRoutingPolicy = $false
+
+                }
+
+                DirectRouting {
+
+                    # Check if user has Teams Phone Standard License
+                    if ($checkCsOnlineUser.FeatureTypes -contains "PhoneSystem") {
+
+                        $licenseCheckSuccess = $true
+
+                        $usageLocationCheck = $true
+
+                    }
+
+                    else {
+
+                        $licenseCheckSuccess = $false
+
+                    }
+
+                    $assignVoiceRoutingPolicy = $true
+
+                }
+                Default {}
+            }
+
+            if ($licenseCheckSuccess -eq $true -and $usageLocationCheck -eq $true) {
+
+                Write-Output "License and Usage Location checks for user $userPrincipalName are successful."
+                Write-Output "Trying to assign reserved number $($reservedNumber.Title) to user $userPrincipalName..."
+
+                Set-CsPhoneNumberAssignment -Identity $userPrincipalName -PhoneNumberType $reservedNumber.Number_x0020_Type -PhoneNumber $reservedNumber.Title
+
+                if ($assignVoiceRoutingPolicy -eq $true) {
+
+                    $phoneNumber = $reservedNumber.Title
+
+                    . Get-CountryFromPrefix
+
+                    Write-Output "$($reservedNumber.Title) is a Direct Routing Number. Voice Routing Policy $voiceRoutingPolicy will be assigned."
+
+                    Grant-CsOnlineVoiceRoutingPolicy -Identity $userPrincipalName -PolicyName $voiceRoutingPolicy
+
+                }
+
+            }
+
+            # License issue
+            else {
+
+                if ($licenseCheckSuccess -eq $false) {
+
+                    Write-Output "User $userPrincipalName is missing the license for $($reservedNumber.Number_x0020_Type) assignment."
+
+                }
+
+                if ($usageLocationCheck -eq $false) {
+
+                    Write-Output "Usage Location of $userPrincipalName is $($checkCsOnlineUser.UsageLocation) and does not match phone number country $($reservedNumber.Country)."
+
+                }
+
+                ($sharePointListItems | Where-Object {$_.Title -eq $reservedNumber.Title}).Status = "Assignment Error"
+
+            }
 
         }
 
@@ -274,7 +405,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         else {
 
-            $assignedDirectRoutingNumberCity = (Get-CsPhoneNumberAssignment -TelephoneNumber $($teamsPhoneUser.LineUri).Replace("tel:","")).City
+            $assignedDirectRoutingNumberCity = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq $phoneNumber}).City
 
             $numberType = "DirectRouting"
             $city = $assignedDirectRoutingNumberCity
@@ -449,6 +580,12 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
             }
 
             else {
+
+                if ($checkEntry.Status -eq "Assignment Error") {
+
+                    $teamsPhoneNumber = $checkEntryObject
+
+                }
 
                 # patch
 
