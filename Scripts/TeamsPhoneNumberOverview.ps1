@@ -1,4 +1,5 @@
-﻿$localTestMode = $true
+﻿# Set to true if script is executed locally
+$localTestMode = $false
 
 function Get-AllSPOListItems {
     param (
@@ -48,7 +49,7 @@ switch ($localTestMode) {
         . .\Functions\Get-CsOnlineNumbers.ps1
 
         # Import variables
-        $MsListName = "Teams Phone Number Demo 10"
+        $MsListName = "Teams Phone Number Overview Demo V2"
         $TenantId = Get-Content -Path .\.local\TenantId.txt
         $AppId = Get-Content -Path .\.local\AppId.txt
         $AppSecret = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Get-Content -Path .\.local\AppSecret.txt | ConvertTo-SecureString))) | Out-String
@@ -567,7 +568,7 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
             # no differences
 
-            Write-Output "Entry $($teamsPhoneNumber.Title) is up to date..."
+            Write-Output "Entry $($teamsPhoneNumber.Title) is already up to date and won't be updated..."
 
         }
 
@@ -585,11 +586,19 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
                     $teamsPhoneNumber = $checkEntryObject
 
+                    Write-Output "Entry $($teamsPhoneNumber.Title) is NOT up to date because it has assignment errors. Entry won't be updated..."
+
+
                 }
 
-                # patch
+                else {
 
-                Write-Output "Entry $($teamsPhoneNumber.Title) is NOT up to date..."
+                    Write-Output "Entry $($teamsPhoneNumber.Title) is NOT up to date and will be updated..."
+
+                }
+
+
+                # patch
 
 $body = @"
 {

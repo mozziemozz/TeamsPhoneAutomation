@@ -1,919 +1,1203 @@
 ﻿[
     {
-        "Prefix":  "+93",
-        "Country":  "AFGHANISTAN"
+        "Prefix": "+93",
+        "CountryName": "Afghanistan",
+        "Country": "AF"
     },
     {
-        "Prefix":  "+1907",
-        "Country":  "ALASKA (USA)"
+        "Prefix": "+355",
+        "CountryName": "Albania",
+        "Country": "AL"
     },
     {
-        "Prefix":  "+355",
-        "Country":  "ALBANIA"
+        "Prefix": "+213",
+        "CountryName": "Algeria",
+        "Country": "DZ"
     },
     {
-        "Prefix":  "+213",
-        "Country":  "ALGERIA"
+        "Prefix": "+1684",
+        "CountryName": "American Samoa",
+        "Country": "AS"
     },
     {
-        "Prefix":  "+1684",
-        "Country":  "AMERICAN SAMOA"
+        "Prefix": "+376",
+        "CountryName": "Andorra",
+        "Country": "AD"
     },
     {
-        "Prefix":  "+376",
-        "Country":  "ANDORRA"
+        "Prefix": "+244",
+        "CountryName": "Angola",
+        "Country": "AO"
     },
     {
-        "Prefix":  "+244",
-        "Country":  "ANGOLA"
+        "Prefix": "+1264",
+        "CountryName": "Anguilla",
+        "Country": "AI"
     },
     {
-        "Prefix":  "+1264",
-        "Country":  "ANGUILLA"
+        "Prefix": "+672",
+        "CountryName": "Antarctica",
+        "Country": "AQ"
     },
     {
-        "Prefix":  "+1268",
-        "Country":  "ANTIGUA & BARBUDA"
+        "Prefix": "+1268",
+        "CountryName": "Antigua and Barbuda",
+        "Country": "AG"
     },
     {
-        "Prefix":  "+54",
-        "Country":  "ARGENTINA"
+        "Prefix": "+54",
+        "CountryName": "Argentina",
+        "Country": "AR"
     },
     {
-        "Prefix":  "+374",
-        "Country":  "ARMENIA"
+        "Prefix": "+374",
+        "CountryName": "Armenia",
+        "Country": "AM"
     },
     {
-        "Prefix":  "+297",
-        "Country":  "ARUBA"
+        "Prefix": "+297",
+        "CountryName": "Aruba",
+        "Country": "AW"
     },
     {
-        "Prefix":  "+247",
-        "Country":  "ASCENSION"
+        "Prefix": "+61",
+        "CountryName": "Australia",
+        "Country": "AU"
     },
     {
-        "Prefix":  "+61",
-        "Country":  "AUSTRALIA"
+        "Prefix": "+43",
+        "CountryName": "Austria",
+        "Country": "AT"
     },
     {
-        "Prefix":  "+43",
-        "Country":  "AUSTRIA"
+        "Prefix": "+994",
+        "CountryName": "Azerbaijan",
+        "Country": "AZ"
     },
     {
-        "Prefix":  "+994",
-        "Country":  "AZERBAIJAN"
+        "Prefix": "+1242",
+        "CountryName": "Bahamas",
+        "Country": "BS"
     },
     {
-        "Prefix":  "+1242",
-        "Country":  "BAHAMAS"
+        "Prefix": "+973",
+        "CountryName": "Bahrain",
+        "Country": "BH"
     },
     {
-        "Prefix":  "+973",
-        "Country":  "BAHRAIN"
+        "Prefix": "+880",
+        "CountryName": "Bangladesh",
+        "Country": "BD"
     },
     {
-        "Prefix":  "+880",
-        "Country":  "BANGLADESH"
+        "Prefix": "+1246",
+        "CountryName": "Barbados",
+        "Country": "BB"
     },
     {
-        "Prefix":  "+1246",
-        "Country":  "BARBADOS"
+        "Prefix": "+375",
+        "CountryName": "Belarus",
+        "Country": "BY"
     },
     {
-        "Prefix":  "+375",
-        "Country":  "BELARUS"
+        "Prefix": "+32",
+        "CountryName": "Belgium",
+        "Country": "BE"
     },
     {
-        "Prefix":  "+32",
-        "Country":  "BELGIUM"
+        "Prefix": "+501",
+        "CountryName": "Belize",
+        "Country": "BZ"
     },
     {
-        "Prefix":  "+501",
-        "Country":  "BELIZE"
+        "Prefix": "+229",
+        "CountryName": "Benin",
+        "Country": "BJ"
     },
     {
-        "Prefix":  "+229",
-        "Country":  "BENIN"
+        "Prefix": "+1441",
+        "CountryName": "Bermuda",
+        "Country": "BM"
     },
     {
-        "Prefix":  "+1441",
-        "Country":  "BERMUDA"
+        "Prefix": "+975",
+        "CountryName": "Bhutan",
+        "Country": "BT"
     },
     {
-        "Prefix":  "+975",
-        "Country":  "BHUTAN"
+        "Prefix": "+591",
+        "CountryName": "Bolivia",
+        "Country": "BO"
     },
     {
-        "Prefix":  "+591",
-        "Country":  "BOLIVIA"
+        "Prefix": "+387",
+        "CountryName": "Bosnia and Herzegovina",
+        "Country": "BA"
     },
     {
-        "Prefix":  "+387",
-        "Country":  "BOSNIA / HERZEGOVINA"
+        "Prefix": "+267",
+        "CountryName": "Botswana",
+        "Country": "BW"
     },
     {
-        "Prefix":  "+267",
-        "Country":  "BOTSWANA"
+        "Prefix": "+55",
+        "CountryName": "Brazil",
+        "Country": "BR"
     },
     {
-        "Prefix":  "+55",
-        "Country":  "BRAZIL"
+        "Prefix": "+246",
+        "CountryName": "British Indian Ocean Territory",
+        "Country": "IO"
     },
     {
-        "Prefix":  "+1284",
-        "Country":  "BRITISH VIRGINISLANDS"
+        "Prefix": "+1284",
+        "CountryName": "British Virgin Islands",
+        "Country": "VG"
     },
     {
-        "Prefix":  "+673",
-        "Country":  "BRUNEI"
+        "Prefix": "+673",
+        "CountryName": "Brunei",
+        "Country": "BN"
     },
     {
-        "Prefix":  "+359",
-        "Country":  "BULGARIA"
+        "Prefix": "+359",
+        "CountryName": "Bulgaria",
+        "Country": "BG"
     },
     {
-        "Prefix":  "+226",
-        "Country":  "BURKINA FASO"
+        "Prefix": "+226",
+        "CountryName": "Burkina Faso",
+        "Country": "BF"
     },
     {
-        "Prefix":  "+257",
-        "Country":  "BURUNDI"
+        "Prefix": "+257",
+        "CountryName": "Burundi",
+        "Country": "BI"
     },
     {
-        "Prefix":  "+855",
-        "Country":  "CAMBODIA"
+        "Prefix": "+855",
+        "CountryName": "Cambodia",
+        "Country": "KH"
     },
     {
-        "Prefix":  "+237",
-        "Country":  "CAMEROON"
+        "Prefix": "+237",
+        "CountryName": "Cameroon",
+        "Country": "CM"
     },
     {
-        "Prefix":  "+1",
-        "Country":  "USA & CANADA"
+        "Prefix": "+1",
+        "CountryName": "Canada",
+        "Country": "CA"
     },
     {
-        "Prefix":  "+238",
-        "Country":  "CAPE VERDE"
+        "Prefix": "+238",
+        "CountryName": "Cape Verde",
+        "Country": "CV"
     },
     {
-        "Prefix":  "+1345",
-        "Country":  "CAYMAN ISLANDS"
+        "Prefix": "+1345",
+        "CountryName": "Cayman Islands",
+        "Country": "KY"
     },
     {
-        "Prefix":  "+236",
-        "Country":  "CENTRAL AFRICANREPUBLIC"
+        "Prefix": "+236",
+        "CountryName": "Central African Republic",
+        "Country": "CF"
     },
     {
-        "Prefix":  "+235",
-        "Country":  "CHAD"
+        "Prefix": "+235",
+        "CountryName": "Chad",
+        "Country": "TD"
     },
     {
-        "Prefix":  "+56",
-        "Country":  "CHILE"
+        "Prefix": "+56",
+        "CountryName": "Chile",
+        "Country": "CL"
     },
     {
-        "Prefix":  "+86",
-        "Country":  "CHINA"
+        "Prefix": "+86",
+        "CountryName": "China",
+        "Country": "CN"
     },
     {
-        "Prefix":  "+57",
-        "Country":  "COLOMBIA"
+        "Prefix": "+61",
+        "CountryName": "Christmas Island",
+        "Country": "CX"
     },
     {
-        "Prefix":  "+269",
-        "Country":  "COMOROS"
+        "Prefix": "+61",
+        "CountryName": "Cocos Islands",
+        "Country": "CC"
     },
     {
-        "Prefix":  "+242",
-        "Country":  "CONGO"
+        "Prefix": "+57",
+        "CountryName": "Colombia",
+        "Country": "CO"
     },
     {
-        "Prefix":  "+243",
-        "Country":  "CONGO DEM. REP.(ZAIRE)"
+        "Prefix": "+269",
+        "CountryName": "Comoros",
+        "Country": "KM"
     },
     {
-        "Prefix":  "+682",
-        "Country":  "COOK ISLAND"
+        "Prefix": "+682",
+        "CountryName": "Cook Islands",
+        "Country": "CK"
     },
     {
-        "Prefix":  "+506",
-        "Country":  "COSTA RICA"
+        "Prefix": "+506",
+        "CountryName": "Costa Rica",
+        "Country": "CR"
     },
     {
-        "Prefix":  "+385",
-        "Country":  "CROATIA"
+        "Prefix": "+385",
+        "CountryName": "Croatia",
+        "Country": "HR"
     },
     {
-        "Prefix":  "+53",
-        "Country":  "CUBA"
+        "Prefix": "+53",
+        "CountryName": "Cuba",
+        "Country": "CU"
     },
     {
-        "Prefix":  "+357",
-        "Country":  "CYPRUS"
+        "Prefix": "+599",
+        "CountryName": "Curacao",
+        "Country": "CW"
     },
     {
-        "Prefix":  "+420",
-        "Country":  "CZECH REPUBLIC"
+        "Prefix": "+357",
+        "CountryName": "Cyprus",
+        "Country": "CY"
     },
     {
-        "Prefix":  "+45",
-        "Country":  "DENMARK"
+        "Prefix": "+420",
+        "CountryName": "Czech Republic",
+        "Country": "CZ"
     },
     {
-        "Prefix":  "+246",
-        "Country":  "DIEGO GARCIA"
+        "Prefix": "+243",
+        "CountryName": "Democratic Republic of the Congo",
+        "Country": "CD"
     },
     {
-        "Prefix":  "+253",
-        "Country":  "DJIBOUTI"
+        "Prefix": "+45",
+        "CountryName": "Denmark",
+        "Country": "DK"
     },
     {
-        "Prefix":  "+1767",
-        "Country":  "DOMINICA"
+        "Prefix": "+253",
+        "CountryName": "Djibouti",
+        "Country": "DJ"
     },
     {
-        "Prefix":  "+1809",
-        "Country":  "DOMINICAN REPUBLIC"
+        "Prefix": "+1767",
+        "CountryName": "Dominica",
+        "Country": "DM"
     },
     {
-        "Prefix":  "+670",
-        "Country":  "EAST TIMOR"
+        "Prefix": "+1809, 1829, 1849",
+        "CountryName": "Dominican Republic",
+        "Country": "DO"
     },
     {
-        "Prefix":  "+593",
-        "Country":  "ECUADOR"
+        "Prefix": "+670",
+        "CountryName": "East Timor",
+        "Country": "TL"
     },
     {
-        "Prefix":  "+20",
-        "Country":  "EGYPT"
+        "Prefix": "+593",
+        "CountryName": "Ecuador",
+        "Country": "EC"
     },
     {
-        "Prefix":  "+503",
-        "Country":  "EL SALVADOR"
+        "Prefix": "+20",
+        "CountryName": "Egypt",
+        "Country": "EG"
     },
     {
-        "Prefix":  "+240",
-        "Country":  "EQUATORIAL GUINEA"
+        "Prefix": "+503",
+        "CountryName": "El Salvador",
+        "Country": "SV"
     },
     {
-        "Prefix":  "+291",
-        "Country":  "ERITREA"
+        "Prefix": "+240",
+        "CountryName": "Equatorial Guinea",
+        "Country": "GQ"
     },
     {
-        "Prefix":  "+372",
-        "Country":  "ESTONIA"
+        "Prefix": "+291",
+        "CountryName": "Eritrea",
+        "Country": "ER"
     },
     {
-        "Prefix":  "+251",
-        "Country":  "ETHIOPIA"
+        "Prefix": "+372",
+        "CountryName": "Estonia",
+        "Country": "EE"
     },
     {
-        "Prefix":  "+500",
-        "Country":  "FALKLAND ISLANDS"
+        "Prefix": "+251",
+        "CountryName": "Ethiopia",
+        "Country": "ET"
     },
     {
-        "Prefix":  "+298",
-        "Country":  "FAROE ISLANDS"
+        "Prefix": "+500",
+        "CountryName": "Falkland Islands",
+        "Country": "FK"
     },
     {
-        "Prefix":  "+679",
-        "Country":  "FIJI"
+        "Prefix": "+298",
+        "CountryName": "Faroe Islands",
+        "Country": "FO"
     },
     {
-        "Prefix":  "+358",
-        "Country":  "FINLAND"
+        "Prefix": "+679",
+        "CountryName": "Fiji",
+        "Country": "FJ"
     },
     {
-        "Prefix":  "+33",
-        "Country":  "FRANCE"
+        "Prefix": "+358",
+        "CountryName": "Finland",
+        "Country": "FI"
     },
     {
-        "Prefix":  "+594",
-        "Country":  "FRENCH GUIANA"
+        "Prefix": "+33",
+        "CountryName": "France",
+        "Country": "FR"
     },
     {
-        "Prefix":  "+689",
-        "Country":  "FRENCH POLYNESIA"
+        "Prefix": "+689",
+        "CountryName": "French Polynesia",
+        "Country": "PF"
     },
     {
-        "Prefix":  "+241",
-        "Country":  "GABON"
+        "Prefix": "+241",
+        "CountryName": "Gabon",
+        "Country": "GA"
     },
     {
-        "Prefix":  "+220",
-        "Country":  "GAMBIA"
+        "Prefix": "+220",
+        "CountryName": "Gambia",
+        "Country": "GM"
     },
     {
-        "Prefix":  "+995",
-        "Country":  "GEORGIA"
+        "Prefix": "+995",
+        "CountryName": "Georgia",
+        "Country": "GE"
     },
     {
-        "Prefix":  "+49",
-        "Country":  "GERMANY"
+        "Prefix": "+49",
+        "CountryName": "Germany",
+        "Country": "DE"
     },
     {
-        "Prefix":  "+233",
-        "Country":  "GHANA"
+        "Prefix": "+233",
+        "CountryName": "Ghana",
+        "Country": "GH"
     },
     {
-        "Prefix":  "+350",
-        "Country":  "GIBRALTAR"
+        "Prefix": "+350",
+        "CountryName": "Gibraltar",
+        "Country": "GI"
     },
     {
-        "Prefix":  "+30",
-        "Country":  "GREECE"
+        "Prefix": "+30",
+        "CountryName": "Greece",
+        "Country": "GR"
     },
     {
-        "Prefix":  "+299",
-        "Country":  "GREENLAND"
+        "Prefix": "+299",
+        "CountryName": "Greenland",
+        "Country": "GL"
     },
     {
-        "Prefix":  "+1473",
-        "Country":  "GRENADA"
+        "Prefix": "+1473",
+        "CountryName": "Grenada",
+        "Country": "GD"
     },
     {
-        "Prefix":  "+590",
-        "Country":  "GUADALOUPE"
+        "Prefix": "+1671",
+        "CountryName": "Guam",
+        "Country": "GU"
     },
     {
-        "Prefix":  "+1671",
-        "Country":  "GUAM"
+        "Prefix": "+502",
+        "CountryName": "Guatemala",
+        "Country": "GT"
     },
     {
-        "Prefix":  "+502",
-        "Country":  "GUATEMALA"
+        "Prefix": "+441481",
+        "CountryName": "Guernsey",
+        "Country": "GG"
     },
     {
-        "Prefix":  "+224",
-        "Country":  "GUINEA"
+        "Prefix": "+224",
+        "CountryName": "Guinea",
+        "Country": "GN"
     },
     {
-        "Prefix":  "+245",
-        "Country":  "GUINEA BISSAU"
+        "Prefix": "+245",
+        "CountryName": "GuineaBissau",
+        "Country": "GN"
     },
     {
-        "Prefix":  "+592",
-        "Country":  "GUYANA"
+        "Prefix": "+592",
+        "CountryName": "Guyana",
+        "Country": "GY"
     },
     {
-        "Prefix":  "+509",
-        "Country":  "HAITI"
+        "Prefix": "+509",
+        "CountryName": "Haiti",
+        "Country": "HT"
     },
     {
-        "Prefix":  "+1808",
-        "Country":  "HAWAII (USA)"
+        "Prefix": "+504",
+        "CountryName": "Honduras",
+        "Country": "HN"
     },
     {
-        "Prefix":  "+504",
-        "Country":  "HONDURAS"
+        "Prefix": "+852",
+        "CountryName": "Hong Kong",
+        "Country": "HK"
     },
     {
-        "Prefix":  "+852",
-        "Country":  "HONG KONG"
+        "Prefix": "+36",
+        "CountryName": "Hungary",
+        "Country": "HU"
     },
     {
-        "Prefix":  "+36",
-        "Country":  "HUNGARY"
+        "Prefix": "+354",
+        "CountryName": "Iceland",
+        "Country": "IS"
     },
     {
-        "Prefix":  "+354",
-        "Country":  "ICELAND"
+        "Prefix": "+91",
+        "CountryName": "India",
+        "Country": "IN"
     },
     {
-        "Prefix":  "+91",
-        "Country":  "INDIA"
+        "Prefix": "+62",
+        "CountryName": "Indonesia",
+        "Country": "ID"
     },
     {
-        "Prefix":  "+62",
-        "Country":  "INDONESIA"
+        "Prefix": "+98",
+        "CountryName": "Iran",
+        "Country": "IR"
     },
     {
-        "Prefix":  "+98",
-        "Country":  "IRAN"
+        "Prefix": "+964",
+        "CountryName": "Iraq",
+        "Country": "IQ"
     },
     {
-        "Prefix":  "+964",
-        "Country":  "IRAQ"
+        "Prefix": "+353",
+        "CountryName": "Ireland",
+        "Country": "IE"
     },
     {
-        "Prefix":  "+353",
-        "Country":  "IRELAND"
+        "Prefix": "+441624",
+        "CountryName": "Isle of Man",
+        "Country": "IM"
     },
     {
-        "Prefix":  "+972",
-        "Country":  "ISRAEL"
+        "Prefix": "+972",
+        "CountryName": "Israel",
+        "Country": "IL"
     },
     {
-        "Prefix":  "+39",
-        "Country":  "ITALY"
+        "Prefix": "+39",
+        "CountryName": "Italy",
+        "Country": "IT"
     },
     {
-        "Prefix":  "+225",
-        "Country":  "IVORY COAST"
+        "Prefix": "+225",
+        "CountryName": "Ivory Coast",
+        "Country": "CI"
     },
     {
-        "Prefix":  "+1876",
-        "Country":  "JAMAICA"
+        "Prefix": "+1876",
+        "CountryName": "Jamaica",
+        "Country": "JM"
     },
     {
-        "Prefix":  "+81",
-        "Country":  "JAPAN"
+        "Prefix": "+81",
+        "CountryName": "Japan",
+        "Country": "JP"
     },
     {
-        "Prefix":  "+962",
-        "Country":  "JORDAN"
+        "Prefix": "+441534",
+        "CountryName": "Jersey",
+        "Country": "JE"
     },
     {
-        "Prefix":  "+254",
-        "Country":  "KENYA"
+        "Prefix": "+962",
+        "CountryName": "Jordan",
+        "Country": "JO"
     },
     {
-        "Prefix":  "+686",
-        "Country":  "KIRIBATI"
+        "Prefix": "+7",
+        "CountryName": "Kazakhstan",
+        "Country": "KZ"
     },
     {
-        "Prefix":  "+850",
-        "Country":  "KOREA (NORTH)"
+        "Prefix": "+254",
+        "CountryName": "Kenya",
+        "Country": "KE"
     },
     {
-        "Prefix":  "+82",
-        "Country":  "KOREA SOUTH"
+        "Prefix": "+686",
+        "CountryName": "Kiribati",
+        "Country": "KI"
     },
     {
-        "Prefix":  "+965",
-        "Country":  "KUWAIT"
+        "Prefix": "+383",
+        "CountryName": "Kosovo",
+        "Country": "XK"
     },
     {
-        "Prefix":  "+996",
-        "Country":  "KYRGHYZSTAN"
+        "Prefix": "+965",
+        "CountryName": "Kuwait",
+        "Country": "KW"
     },
     {
-        "Prefix":  "+856",
-        "Country":  "LAOS"
+        "Prefix": "+996",
+        "CountryName": "Kyrgyzstan",
+        "Country": "KG"
     },
     {
-        "Prefix":  "+371",
-        "Country":  "LATVIA"
+        "Prefix": "+856",
+        "CountryName": "Laos",
+        "Country": "LA"
     },
     {
-        "Prefix":  "+961",
-        "Country":  "LEBANON"
+        "Prefix": "+371",
+        "CountryName": "Latvia",
+        "Country": "LV"
     },
     {
-        "Prefix":  "+266",
-        "Country":  "LESOTHO"
+        "Prefix": "+961",
+        "CountryName": "Lebanon",
+        "Country": "LB"
     },
     {
-        "Prefix":  "+231",
-        "Country":  "LIBERIA"
+        "Prefix": "+266",
+        "CountryName": "Lesotho",
+        "Country": "LS"
     },
     {
-        "Prefix":  "+218",
-        "Country":  "LIBYA"
+        "Prefix": "+231",
+        "CountryName": "Liberia",
+        "Country": "LR"
     },
     {
-        "Prefix":  "+423",
-        "Country":  "LIECHTENSTEIN"
+        "Prefix": "+218",
+        "CountryName": "Libya",
+        "Country": "LY"
     },
     {
-        "Prefix":  "+370",
-        "Country":  "LITHUANIA"
+        "Prefix": "+423",
+        "CountryName": "Liechtenstein",
+        "Country": "LI"
     },
     {
-        "Prefix":  "+352",
-        "Country":  "LUXEMBOURG"
+        "Prefix": "+370",
+        "CountryName": "Lithuania",
+        "Country": "LT"
     },
     {
-        "Prefix":  "+853",
-        "Country":  "MACAU"
+        "Prefix": "+352",
+        "CountryName": "Luxembourg",
+        "Country": "LU"
     },
     {
-        "Prefix":  "+389",
-        "Country":  "MACEDONIA"
+        "Prefix": "+853",
+        "CountryName": "Macau",
+        "Country": "MO"
     },
     {
-        "Prefix":  "+261",
-        "Country":  "MADAGASCAR"
+        "Prefix": "+389",
+        "CountryName": "Macedonia",
+        "Country": "MK"
     },
     {
-        "Prefix":  "+265",
-        "Country":  "MALAWI"
+        "Prefix": "+261",
+        "CountryName": "Madagascar",
+        "Country": "MG"
     },
     {
-        "Prefix":  "+60",
-        "Country":  "MALAYSIA"
+        "Prefix": "+265",
+        "CountryName": "Malawi",
+        "Country": "MW"
     },
     {
-        "Prefix":  "+960",
-        "Country":  "MALDIVES"
+        "Prefix": "+60",
+        "CountryName": "Malaysia",
+        "Country": "MY"
     },
     {
-        "Prefix":  "+223",
-        "Country":  "MALI"
+        "Prefix": "+960",
+        "CountryName": "Maldives",
+        "Country": "MV"
     },
     {
-        "Prefix":  "+356",
-        "Country":  "MALTA"
+        "Prefix": "+223",
+        "CountryName": "Mali",
+        "Country": "ML"
     },
     {
-        "Prefix":  "+1670",
-        "Country":  "MARIANA IS.(SAIPAN)"
+        "Prefix": "+356",
+        "CountryName": "Malta",
+        "Country": "MT"
     },
     {
-        "Prefix":  "+692",
-        "Country":  "MARSHALL ISLANDS"
+        "Prefix": "+692",
+        "CountryName": "Marshall Islands",
+        "Country": "MH"
     },
     {
-        "Prefix":  "+596",
-        "Country":  "MARTINIQUE(FRENCHANTILLES)"
+        "Prefix": "+222",
+        "CountryName": "Mauritania",
+        "Country": "MR"
     },
     {
-        "Prefix":  "+222",
-        "Country":  "MAURITANIA"
+        "Prefix": "+230",
+        "CountryName": "Mauritius",
+        "Country": "MU"
     },
     {
-        "Prefix":  "+230",
-        "Country":  "MAURITIUS"
+        "Prefix": "+262",
+        "CountryName": "Mayotte",
+        "Country": "YT"
     },
     {
-        "Prefix":  "+52",
-        "Country":  "MEXICO"
+        "Prefix": "+52",
+        "CountryName": "Mexico",
+        "Country": "MX"
     },
     {
-        "Prefix":  "+691",
-        "Country":  "MICRONESIA"
+        "Prefix": "+691",
+        "CountryName": "Micronesia",
+        "Country": "FM"
     },
     {
-        "Prefix":  "+373",
-        "Country":  "MOLDOVA"
+        "Prefix": "+373",
+        "CountryName": "Moldova",
+        "Country": "MD"
     },
     {
-        "Prefix":  "+377",
-        "Country":  "MONACO"
+        "Prefix": "+377",
+        "CountryName": "Monaco",
+        "Country": "MC"
     },
     {
-        "Prefix":  "+976",
-        "Country":  "MONGOLIA"
+        "Prefix": "+976",
+        "CountryName": "Mongolia",
+        "Country": "MN"
     },
     {
-        "Prefix":  "+1664",
-        "Country":  "MONTSERRAT"
+        "Prefix": "+382",
+        "CountryName": "Montenegro",
+        "Country": "ME"
     },
     {
-        "Prefix":  "+212",
-        "Country":  "MOROCCO"
+        "Prefix": "+1664",
+        "CountryName": "Montserrat",
+        "Country": "MS"
     },
     {
-        "Prefix":  "+258",
-        "Country":  "MOZAMBIQUE"
+        "Prefix": "+212",
+        "CountryName": "Morocco",
+        "Country": "MA"
     },
     {
-        "Prefix":  "+95",
-        "Country":  "MYANMAR"
+        "Prefix": "+258",
+        "CountryName": "Mozambique",
+        "Country": "MZ"
     },
     {
-        "Prefix":  "+264",
-        "Country":  "NAMIBIA"
+        "Prefix": "+95",
+        "CountryName": "Myanmar",
+        "Country": "MM"
     },
     {
-        "Prefix":  "+674",
-        "Country":  "NAURU"
+        "Prefix": "+264",
+        "CountryName": "Namibia",
+        "Country": "NA"
     },
     {
-        "Prefix":  "+977",
-        "Country":  "NEPAL"
+        "Prefix": "+674",
+        "CountryName": "Nauru",
+        "Country": "NR"
     },
     {
-        "Prefix":  "+31",
-        "Country":  "NETHERLANDS"
+        "Prefix": "+977",
+        "CountryName": "Nepal",
+        "Country": "NP"
     },
     {
-        "Prefix":  "+599",
-        "Country":  "NETHERLANDS ANTILLES"
+        "Prefix": "+31",
+        "CountryName": "Netherlands",
+        "Country": "NL"
     },
     {
-        "Prefix":  "+687",
-        "Country":  "NEW CALEDONIA"
+        "Prefix": "+599",
+        "CountryName": "Netherlands Antilles",
+        "Country": "AN"
     },
     {
-        "Prefix":  "+64",
-        "Country":  "NEW ZEALAND"
+        "Prefix": "+687",
+        "CountryName": "New Caledonia",
+        "Country": "NC"
     },
     {
-        "Prefix":  "+505",
-        "Country":  "NICARAGUA"
+        "Prefix": "+64",
+        "CountryName": "New Zealand",
+        "Country": "NZ"
     },
     {
-        "Prefix":  "+227",
-        "Country":  "NIGER"
+        "Prefix": "+505",
+        "CountryName": "Nicaragua",
+        "Country": "NI"
     },
     {
-        "Prefix":  "+234",
-        "Country":  "NIGERIA"
+        "Prefix": "+227",
+        "CountryName": "Niger",
+        "Country": "NE"
     },
     {
-        "Prefix":  "+683",
-        "Country":  "NIUE ISLAND"
+        "Prefix": "+234",
+        "CountryName": "Nigeria",
+        "Country": "NG"
     },
     {
-        "Prefix":  "+47",
-        "Country":  "NORWAY"
+        "Prefix": "+683",
+        "CountryName": "Niue",
+        "Country": "NU"
     },
     {
-        "Prefix":  "+968",
-        "Country":  "OMAN"
+        "Prefix": "+850",
+        "CountryName": "North Korea",
+        "Country": "KP"
     },
     {
-        "Prefix":  "+92",
-        "Country":  "PAKISTAN"
+        "Prefix": "+1670",
+        "CountryName": "Northern Mariana Islands",
+        "Country": "MP"
     },
     {
-        "Prefix":  "+680",
-        "Country":  "PALAU"
+        "Prefix": "+47",
+        "CountryName": "Norway",
+        "Country": "NO"
     },
     {
-        "Prefix":  "+970",
-        "Country":  "PALESTINE"
+        "Prefix": "+968",
+        "CountryName": "Oman",
+        "Country": "OM"
     },
     {
-        "Prefix":  "+507",
-        "Country":  "PANAMA"
+        "Prefix": "+92",
+        "CountryName": "Pakistan",
+        "Country": "PK"
     },
     {
-        "Prefix":  "+675",
-        "Country":  "PAPUA NEW GUINEA"
+        "Prefix": "+680",
+        "CountryName": "Palau",
+        "Country": "PW"
     },
     {
-        "Prefix":  "+595",
-        "Country":  "PARAGUAY"
+        "Prefix": "+970",
+        "CountryName": "Palestine",
+        "Country": "PS"
     },
     {
-        "Prefix":  "+51",
-        "Country":  "PERU"
+        "Prefix": "+507",
+        "CountryName": "Panama",
+        "Country": "PA"
     },
     {
-        "Prefix":  "+63",
-        "Country":  "PHILIPPINES"
+        "Prefix": "+675",
+        "CountryName": "Papua New Guinea",
+        "Country": "PG"
     },
     {
-        "Prefix":  "+48",
-        "Country":  "POLAND"
+        "Prefix": "+595",
+        "CountryName": "Paraguay",
+        "Country": "PY"
     },
     {
-        "Prefix":  "+351",
-        "Country":  "PORTUGAL"
+        "Prefix": "+51",
+        "CountryName": "Peru",
+        "Country": "PE"
     },
     {
-        "Prefix":  "+1787",
-        "Country":  "PUERTO RICO (I) (USA)"
+        "Prefix": "+63",
+        "CountryName": "Philippines",
+        "Country": "PH"
     },
     {
-        "Prefix":  "+1939",
-        "Country":  "PUERTO RICO (II)(USA)"
+        "Prefix": "+64",
+        "CountryName": "Pitcairn",
+        "Country": "PN"
     },
     {
-        "Prefix":  "+974",
-        "Country":  "QATAR"
+        "Prefix": "+48",
+        "CountryName": "Poland",
+        "Country": "PL"
     },
     {
-        "Prefix":  "+262",
-        "Country":  "REUNION, MAYOTTE"
+        "Prefix": "+351",
+        "CountryName": "Portugal",
+        "Country": "PT"
     },
     {
-        "Prefix":  "+40",
-        "Country":  "ROMANIA"
+        "Prefix": "+1787, 1939",
+        "CountryName": "Puerto Rico",
+        "Country": "PR"
     },
     {
-        "Prefix":  "+7",
-        "Country":  "RUSSIA, KAZAKHSTAN"
+        "Prefix": "+974",
+        "CountryName": "Qatar",
+        "Country": "QA"
     },
     {
-        "Prefix":  "+250",
-        "Country":  "RWANDA"
+        "Prefix": "+242",
+        "CountryName": "Republic of the Congo",
+        "Country": "CG"
     },
     {
-        "Prefix":  "+685",
-        "Country":  "SAMOA WESTERN"
+        "Prefix": "+262",
+        "CountryName": "Reunion",
+        "Country": "RE"
     },
     {
-        "Prefix":  "+378",
-        "Country":  "SAN MARINO"
+        "Prefix": "+40",
+        "CountryName": "Romania",
+        "Country": "RO"
     },
     {
-        "Prefix":  "+239",
-        "Country":  "SAO TOME & PRINCIPE"
+        "Prefix": "+7",
+        "CountryName": "Russia",
+        "Country": "RU"
     },
     {
-        "Prefix":  "+966",
-        "Country":  "SAUDI ARABIA"
+        "Prefix": "+250",
+        "CountryName": "Rwanda",
+        "Country": "RW"
     },
     {
-        "Prefix":  "+221",
-        "Country":  "SENEGAL"
+        "Prefix": "+590",
+        "CountryName": "Saint Barthelemy",
+        "Country": "BL"
     },
     {
-        "Prefix":  "+248",
-        "Country":  "SEYCHELLES"
+        "Prefix": "+290",
+        "CountryName": "Saint Helena",
+        "Country": "SH"
     },
     {
-        "Prefix":  "+232",
-        "Country":  "SIERRA LEONE"
+        "Prefix": "+1869",
+        "CountryName": "Saint Kitts and Nevis",
+        "Country": "KN"
     },
     {
-        "Prefix":  "+65",
-        "Country":  "SINGAPORE"
+        "Prefix": "+1758",
+        "CountryName": "Saint Lucia",
+        "Country": "LC"
     },
     {
-        "Prefix":  "+421",
-        "Country":  "SLOVAKIA"
+        "Prefix": "+590",
+        "CountryName": "Saint Martin",
+        "Country": "MF"
     },
     {
-        "Prefix":  "+386",
-        "Country":  "SLOVENIA"
+        "Prefix": "+508",
+        "CountryName": "Saint Pierre and Miquelon",
+        "Country": "PM"
     },
     {
-        "Prefix":  "+677",
-        "Country":  "SOLOMON ISLANDS"
+        "Prefix": "+1784",
+        "CountryName": "Saint Vincent and the Grenadines",
+        "Country": "VC"
     },
     {
-        "Prefix":  "+252",
-        "Country":  "SOMALIA"
+        "Prefix": "+685",
+        "CountryName": "Samoa",
+        "Country": "WS"
     },
     {
-        "Prefix":  "+27",
-        "Country":  "SOUTH AFRICA"
+        "Prefix": "+378",
+        "CountryName": "San Marino",
+        "Country": "SM"
     },
     {
-        "Prefix":  "+34",
-        "Country":  "SPAIN"
+        "Prefix": "+239",
+        "CountryName": "Sao Tome and Principe",
+        "Country": "ST"
     },
     {
-        "Prefix":  "+94",
-        "Country":  "SRI LANKA"
+        "Prefix": "+966",
+        "CountryName": "Saudi Arabia",
+        "Country": "SA"
     },
     {
-        "Prefix":  "+290",
-        "Country":  "ST HELENA"
+        "Prefix": "+221",
+        "CountryName": "Senegal",
+        "Country": "SN"
     },
     {
-        "Prefix":  "+1869",
-        "Country":  "ST KITTS & NEVIS"
+        "Prefix": "+381",
+        "CountryName": "Serbia",
+        "Country": "RS"
     },
     {
-        "Prefix":  "+1758",
-        "Country":  "ST LUCIA"
+        "Prefix": "+248",
+        "CountryName": "Seychelles",
+        "Country": "SC"
     },
     {
-        "Prefix":  "+1784",
-        "Country":  "ST VINCENT & GRENADINES"
+        "Prefix": "+232",
+        "CountryName": "Sierra Leone",
+        "Country": "SL"
     },
     {
-        "Prefix":  "+508",
-        "Country":  "ST. PIERRE & MIQUELON"
+        "Prefix": "+65",
+        "CountryName": "Singapore",
+        "Country": "SG"
     },
     {
-        "Prefix":  "+249",
-        "Country":  "SUDAN"
+        "Prefix": "+1721",
+        "CountryName": "Sint Maarten",
+        "Country": "SX"
     },
     {
-        "Prefix":  "+597",
-        "Country":  "SURINAM"
+        "Prefix": "+421",
+        "CountryName": "Slovakia",
+        "Country": "SK"
     },
     {
-        "Prefix":  "+268",
-        "Country":  "SWAZILAND"
+        "Prefix": "+386",
+        "CountryName": "Slovenia",
+        "Country": "SI"
     },
     {
-        "Prefix":  "+46",
-        "Country":  "SWEDEN"
+        "Prefix": "+677",
+        "CountryName": "Solomon Islands",
+        "Country": "SB"
     },
     {
-        "Prefix":  "+41",
-        "Country":  "CH",
-        "VoiceRoutingPolicy" : "Netvoip"
+        "Prefix": "+252",
+        "CountryName": "Somalia",
+        "Country": "SO"
     },
     {
-        "Prefix":  "+963",
-        "Country":  "SYRIA"
+        "Prefix": "+27",
+        "CountryName": "South Africa",
+        "Country": "ZA"
     },
     {
-        "Prefix":  "+886",
-        "Country":  "TAIWAN"
+        "Prefix": "+82",
+        "CountryName": "South Korea",
+        "Country": "KR"
     },
     {
-        "Prefix":  "+992",
-        "Country":  "TAJIKISTAN"
+        "Prefix": "+211",
+        "CountryName": "South Sudan",
+        "Country": "SS"
     },
     {
-        "Prefix":  "+255",
-        "Country":  "TANZANIA"
+        "Prefix": "+34",
+        "CountryName": "Spain",
+        "Country": "ES"
     },
     {
-        "Prefix":  "+66",
-        "Country":  "THAILAND"
+        "Prefix": "+94",
+        "CountryName": "Sri Lanka",
+        "Country": "LK"
     },
     {
-        "Prefix":  "+228",
-        "Country":  "TOGO"
+        "Prefix": "+249",
+        "CountryName": "Sudan",
+        "Country": "SD"
     },
     {
-        "Prefix":  "+690",
-        "Country":  "TOKELAU"
+        "Prefix": "+597",
+        "CountryName": "Suriname",
+        "Country": "SR"
     },
     {
-        "Prefix":  "+676",
-        "Country":  "TONGA"
+        "Prefix": "+47",
+        "CountryName": "Svalbard and Jan Mayen",
+        "Country": "SJ"
     },
     {
-        "Prefix":  "+1868",
-        "Country":  "TRINIDAD & TOBAGO"
+        "Prefix": "+268",
+        "CountryName": "Swaziland",
+        "Country": "SZ"
     },
     {
-        "Prefix":  "+216",
-        "Country":  "TUNISIA"
+        "Prefix": "+46",
+        "CountryName": "Sweden",
+        "Country": "SE"
     },
     {
-        "Prefix":  "+90",
-        "Country":  "TURKEY"
+        "Prefix": "+41",
+        "CountryName": "Switzerland",
+        "Country": "CH",
+        "VoiceRoutingPolicy": "Netvoip"
     },
     {
-        "Prefix":  "+993",
-        "Country":  "TURKMENISTAN"
+        "Prefix": "+963",
+        "CountryName": "Syria",
+        "Country": "SY"
     },
     {
-        "Prefix":  "+1649",
-        "Country":  "TURKS & CAICOSISLANDS"
+        "Prefix": "+886",
+        "CountryName": "Taiwan",
+        "Country": "TW"
     },
     {
-        "Prefix":  "+688",
-        "Country":  "TUVALU"
+        "Prefix": "+992",
+        "CountryName": "Tajikistan",
+        "Country": "TJ"
     },
     {
-        "Prefix":  "+256",
-        "Country":  "UGANDA"
+        "Prefix": "+255",
+        "CountryName": "Tanzania",
+        "Country": "TZ"
     },
     {
-        "Prefix":  "+380",
-        "Country":  "UKRAINE"
+        "Prefix": "+66",
+        "CountryName": "Thailand",
+        "Country": "TH"
     },
     {
-        "Prefix":  "+971",
-        "Country":  "UNITED ARAB EMIRATES"
+        "Prefix": "+228",
+        "CountryName": "Togo",
+        "Country": "TG"
     },
     {
-        "Prefix":  "+44",
-        "Country":  "UNITED KINGDOM"
+        "Prefix": "+690",
+        "CountryName": "Tokelau",
+        "Country": "TK"
     },
     {
-        "Prefix":  "+598",
-        "Country":  "URUGUAY"
+        "Prefix": "+676",
+        "CountryName": "Tonga",
+        "Country": "TO"
     },
     {
-        "Prefix":  "+998",
-        "Country":  "UZBEKISTAN"
+        "Prefix": "+1868",
+        "CountryName": "Trinidad and Tobago",
+        "Country": "TT"
     },
     {
-        "Prefix":  "+678",
-        "Country":  "VANUATU"
+        "Prefix": "+216",
+        "CountryName": "Tunisia",
+        "Country": "TN"
     },
     {
-        "Prefix":  "+379",
-        "Country":  "VATICAN CITY"
+        "Prefix": "+90",
+        "CountryName": "Turkey",
+        "Country": "TR"
     },
     {
-        "Prefix":  "+58",
-        "Country":  "VENEZUELA"
+        "Prefix": "+993",
+        "CountryName": "Turkmenistan",
+        "Country": "TM"
     },
     {
-        "Prefix":  "+84",
-        "Country":  "VIETNAM"
+        "Prefix": "+1649",
+        "CountryName": "Turks and Caicos Islands",
+        "Country": "TC"
     },
     {
-        "Prefix":  "+1340",
-        "Country":  "VIRGIN ISLAND (USA)"
+        "Prefix": "+688",
+        "CountryName": "Tuvalu",
+        "Country": "TV"
     },
     {
-        "Prefix":  "+681",
-        "Country":  "WALLIS & FUTUNA"
+        "Prefix": "+1340",
+        "CountryName": "U.S. Virgin Islands",
+        "Country": "VI"
     },
     {
-        "Prefix":  "+967",
-        "Country":  "YEMEN"
+        "Prefix": "+256",
+        "CountryName": "Uganda",
+        "Country": "UG"
     },
     {
-        "Prefix":  "+381",
-        "Country":  "YUGOSLAVIA (SERBIA)"
+        "Prefix": "+380",
+        "CountryName": "Ukraine",
+        "Country": "UA"
     },
     {
-        "Prefix":  "+260",
-        "Country":  "ZAMBIA"
+        "Prefix": "+971",
+        "CountryName": "United Arab Emirates",
+        "Country": "AE"
     },
     {
-        "Prefix":  "+25524",
-        "Country":  "ZANZIBAR"
+        "Prefix": "+44",
+        "CountryName": "United Kingdom",
+        "Country": "GB"
     },
     {
-        "Prefix":  "+263",
-        "Country":  "ZIMBABWE"
+        "Prefix": "+1",
+        "CountryName": "United States",
+        "Country": "US"
+    },
+    {
+        "Prefix": "+598",
+        "CountryName": "Uruguay",
+        "Country": "UY"
+    },
+    {
+        "Prefix": "+998",
+        "CountryName": "Uzbekistan",
+        "Country": "UZ"
+    },
+    {
+        "Prefix": "+678",
+        "CountryName": "Vanuatu",
+        "Country": "VU"
+    },
+    {
+        "Prefix": "+379",
+        "CountryName": "Vatican",
+        "Country": "VA"
+    },
+    {
+        "Prefix": "+58",
+        "CountryName": "Venezuela",
+        "Country": "VE"
+    },
+    {
+        "Prefix": "+84",
+        "CountryName": "Vietnam",
+        "Country": "VN"
+    },
+    {
+        "Prefix": "+681",
+        "CountryName": "Wallis and Futuna",
+        "Country": "WF"
+    },
+    {
+        "Prefix": "+212",
+        "CountryName": "Western Sahara",
+        "Country": "EH"
+    },
+    {
+        "Prefix": "+967",
+        "CountryName": "Yemen",
+        "Country": "YE"
+    },
+    {
+        "Prefix": "+260",
+        "CountryName": "Zambia",
+        "Country": "ZM"
+    },
+    {
+        "Prefix": "+263",
+        "CountryName": "Zimbabwe",
+        "Country": "ZW"
     }
 ]

@@ -59,11 +59,13 @@ foreach ($module in $requiredModules) {
 
         if ($module -eq "MicrosoftTeams") {
 
-            $localTeamsPSVersionMajor = (Get-InstalledModule -Name MicrosoftTeams).Version.Major
+            $localTeamsPSVersion = Get-InstalledModule -Name "MicrosoftTeams"
+            $localTeamsPSVersionMajor = $localTeamsPSVersion.Version.Major
+            $localTeamsPSVersionMinor =$localTeamsPSVersion.Version.Minor
 
-            if ($localTeamsPSVersionMajor -lt 5) {
+            if ($localTeamsPSVersionMajor -lt 5 -and $localTeamsPSVersionMinor -lt 1) {
 
-                Write-Warning -Message "The installed version of $module is older than 5.0.0. $module will be updated."
+                Write-Warning -Message "The installed version of $module is older than 5.1.0. $module will be updated."
 
                 function Test-Admin {
                     $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
@@ -320,10 +322,10 @@ New-AzResourceGroup -Name $resourceGroupName -Location $azLocation -Tag $resourc
 
 New-AzAutomationAccount -Name $automationAccountName -Location $azLocation -ResourceGroupName $resourceGroupName -Tags $resourceGroupTags
 
-$localTeamsPSVersion = (Get-InstalledModule -Name MicrosoftTeams).Version -join ""
+$installedTeamsPSVersion = (Get-InstalledModule -Name MicrosoftTeams).Version -join ""
 
 # Install MicrosoftTeams PowerShell Module in Automation Account
-New-AzAutomationModule -AutomationAccountName $automationAccountName -Name "MicrosoftTeams" -ContentLink "https://psg-prod-eastus.azureedge.net/packages/microsoftteams.$localTeamsPSVersion.nupkg" -ResourceGroupName $resourceGroupName
+New-AzAutomationModule -AutomationAccountName $automationAccountName -Name "MicrosoftTeams" -ContentLink "https://psg-prod-eastus.azureedge.net/packages/microsoftteams.$installedTeamsPSVersion.nupkg" -ResourceGroupName $resourceGroupName
 
 do {
 
