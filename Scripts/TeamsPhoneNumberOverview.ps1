@@ -1,15 +1,15 @@
 ﻿# Set to true if script is executed locally
-$localTestMode = $false
+$localTestMode = $true
 
 function Get-AllSPOListItems {
     param (
-        
+        [Parameter(Mandatory=$true)][string]$ListId
     )
     
         # Get existing list items
         $sharePointListItems = @()
 
-        $querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items?expand=fields")
+        $querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($ListId)/items?expand=fields")
         $sharePointListItems += $querriedItems.value.fields
     
         if ($querriedItems.'@odata.nextLink') {
@@ -98,7 +98,11 @@ $existingSharePointLists = (Invoke-RestMethod -Method Get -Headers $Header -Uri 
 
 $userInformationListId = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?`$filter=displayName eq 'Benutzerinformationsliste'").value.id
 
-$userInformationList = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$userInformationListId/items?expand=fields").value.fields
+# $userInformationList = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$userInformationListId/items?expand=fields").value.fields
+
+# Retrieve all list items
+. Get-AllSPOListItems -ListId $userInformationListId
+$userInformationList = $sharePointListItems
 
 $userLookupIds = $userInformationList | Select-Object Username,UserSelection
 
@@ -139,7 +143,7 @@ else {
 
 }
 
-. Get-AllSPOListItems
+. Get-AllSPOListItems -ListId $sharePointListId
 
 if ($sharePointListItems) {
 
@@ -435,50 +439,72 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
 }
 
-# Get all unassigned Calling Plan and Operator Connect phone numbers
-foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$null -eq $_.AssignedPstnTargetId -and $_.NumberType -ne "DirectRouting"}) {
+# Get all unassigned Calling Plan and Operator Connect phone numbers or all conference assigned numbers
+foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$_.PstnAssignmentStatus -eq "ConferenceAssigned" -or ($null -eq $_.AssignedPstnTargetId -and $_.NumberType -ne "DirectRouting")}) {
 
     $csOnlineNumberDetails = New-Object -TypeName psobject
 
     $phoneNumber = $csOnlineNumber.TelephoneNumber
 
-    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $phoneNumber
-    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
-    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Unassigned"
-    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $csOnlineNumber.NumberType
-    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "City" -Value $csOnlineNumber.City
-    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $csOnlineNumber.IsoCountryCode
+    if ($csOnlineNumber.PstnAssignmentStatus -eq "ConferenceAssigned") {
 
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $phoneNumber
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Assigned"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $csOnlineNumber.NumberType
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "City" -Value $csOnlineNumber.City
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $csOnlineNumber.IsoCountryCode
+    
+    
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "Conference Bridge"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" "Conference Bridge"
 
-    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "Unassigned"
-    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" "Unassigned"
-
-    if ($csOnlineNumber.Capability -contains "UserAssignment") {
-
-        $accountType = "User Account"
-
-    }
-
-    elseif ($csOnlineNumber.Capability -contains "VoiceApplicationAssignment" -and $csOnlineNumber.Capability -notcontains "ConferenceAssignment") {
-
-        $accountType = "Resource Account"
-
-    }
-
-    elseif ($csOnlineNumber.Capability -notcontains "VoiceApplicationAssignment" -and $csOnlineNumber.Capability -contains "ConferenceAssignment") {
-
-        $accountType = "Conference Bridge"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value "Conference Bridge"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value "Conference Bridge"
 
     }
 
     else {
 
-        $accountType = "Resource Account, Conference Bridge"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $phoneNumber
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Unassigned"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $csOnlineNumber.NumberType
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "City" -Value $csOnlineNumber.City
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $csOnlineNumber.IsoCountryCode
+    
+    
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "Unassigned"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" "Unassigned"
+    
+        if ($csOnlineNumber.Capability -contains "UserAssignment") {
+    
+            $accountType = "User Account"
+    
+        }
+    
+        elseif ($csOnlineNumber.Capability -contains "VoiceApplicationAssignment" -and $csOnlineNumber.Capability -notcontains "ConferenceAssignment") {
+    
+            $accountType = "Resource Account"
+    
+        }
+    
+        elseif ($csOnlineNumber.Capability -notcontains "VoiceApplicationAssignment" -and $csOnlineNumber.Capability -contains "ConferenceAssignment") {
+    
+            $accountType = "Conference Bridge"
+    
+        }
+    
+        else {
+    
+            $accountType = "Resource Account, Conference Bridge"
+    
+        }
+    
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value $accountType
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value "Unassigned"   
 
     }
-
-    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value  $accountType
-    $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value "Unassigned"
 
     $allTeamsPhoneUserDetails += $csOnlineNumberDetails
 
