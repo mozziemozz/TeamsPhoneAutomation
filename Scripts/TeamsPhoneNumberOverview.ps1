@@ -1,5 +1,5 @@
 ﻿# Set to true if script is executed locally
-$localTestMode = $true
+$localTestMode = $false
 
 function Get-AllSPOListItems {
     param (
