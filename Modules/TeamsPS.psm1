@@ -16,7 +16,7 @@ function Sync-MZZCQAgents {
 
     if ($CQIdentity) {
 
-        $CQs = Get-CsCallQueue -WarningAction SilentlyContinue -Identity $CQIdentity
+        $selectedCQs = Get-CsCallQueue -WarningAction SilentlyContinue -Identity $CQIdentity
 
     }
 
@@ -47,41 +47,41 @@ function Sync-MZZCQAgents {
 
         $selectedCQs = $CQs | Select-Object Name, Identity | Out-GridView -Title "Choose one or multiple Call Queues from the list..." -PassThru
 
-        foreach ($CQ in $selectedCQs) {
+    }
 
-            $existingCQAgents = . Get-MZZCQAgents -CQIdentity $CQ.Identity
+    foreach ($CQ in $selectedCQs) {
 
-            Set-CsCallQueue -Identity $CQ.Identity -WarningAction SilentlyContinue > $null
+        $existingCQAgents = . Get-MZZCQAgents -CQIdentity $CQ.Identity
 
-            $updatedCQAgents = . Get-MZZCQAgents -CQIdentity $CQ.Identity
+        Set-CsCallQueue -Identity $CQ.Identity -WarningAction SilentlyContinue > $null
 
-            $removedMembers = $existingCQAgents | Where-Object {$updatedCQAgents."User Principal Name" -notcontains $_."User Principal Name"}
-            $addedMembers = $updatedCQAgents | Where-Object {$existingCQAgents."User Principal Name" -notcontains $_."User Principal Name"}
+        $updatedCQAgents = . Get-MZZCQAgents -CQIdentity $CQ.Identity
 
-            Write-Host "The Agent List of Call Queue '$($CQ.Name)' has been force synced." -ForegroundColor Cyan
+        $removedMembers = $existingCQAgents | Where-Object {$updatedCQAgents."User Principal Name" -notcontains $_."User Principal Name"}
+        $addedMembers = $updatedCQAgents | Where-Object {$existingCQAgents."User Principal Name" -notcontains $_."User Principal Name"}
 
-            if ($removedMembers) {
+        Write-Host "The Agent List of Call Queue '$($CQ.Name)' has been force synced." -ForegroundColor Cyan
 
-                Write-Host "The following Agents were removed:" -ForegroundColor Magenta
-                Write-Output $removedMembers
+        if ($removedMembers) {
 
-            }
-
-            if ($addedMembers) {
-
-                Write-Host "The following Agents were added:" -ForegroundColor Magenta
-                Write-Output $addedMembers
-
-            }
-
-            if (!$removedMembers -and !$addedMembers) {
-
-                Write-Host "No new or remove Agents were detected. Please try again in a few minutes." -ForegroundColor Magenta
-
-            }
+            Write-Host "The following Agents were removed:" -ForegroundColor Magenta
+            $removedMembers | Out-String
 
         }
-        
+
+        if ($addedMembers) {
+
+            Write-Host "The following Agents were added:" -ForegroundColor Magenta
+            $addedMembers | Out-String
+
+        }
+
+        if (!$removedMembers -and !$addedMembers) {
+
+            Write-Host "No new or remove Agents were detected. Please try again in a few minutes." -ForegroundColor Magenta
+
+        }
+
     }
     
 }
@@ -126,7 +126,7 @@ function Get-MZZCQAgents {
 
         do {
 
-            $selectedCQ = $CQs | Select-Object Name, Identity | Out-GridView -Title "Choose a Call Queues from the list..." -PassThru
+            $selectedCQ = $CQs | Select-Object Name, Identity | Out-GridView -Title "Choose a Call Queue from the list..." -PassThru
 
             if ($selectedCQ.Name.Count -gt 1) {
 
