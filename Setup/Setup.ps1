@@ -59,13 +59,11 @@ foreach ($module in $requiredModules) {
 
         if ($module -eq "MicrosoftTeams") {
 
-            $localTeamsPSVersion = Get-InstalledModule -Name "MicrosoftTeams"
-            $localTeamsPSVersionMajor = $localTeamsPSVersion.Version.Major
-            $localTeamsPSVersionMinor =$localTeamsPSVersion.Version.Minor
+            [int]$localTeamsPSVersion = ((Get-InstalledModule -Name "MicrosoftTeams").Version -join "").Replace(".","")
 
-            if ($localTeamsPSVersionMajor -lt 5 -and $localTeamsPSVersionMinor -lt 1) {
+            if ($localTeamsPSVersion -lt 510) {
 
-                Write-Warning -Message "The installed version of $module is older than 5.1.0. $module will be updated."
+                Write-Warning -Message "The installed version of $module is older than 5.0.0. $module will be updated."
 
                 function Test-Admin {
                     $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
