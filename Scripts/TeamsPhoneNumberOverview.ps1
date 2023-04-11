@@ -1,6 +1,29 @@
 ﻿# Set to true if script is executed locally
 $localTestMode = $false
 
+# Set your language or add it to the switch statement
+# To find the name of your user information list, go to:
+# https://<your domain>.sharepoint.com/sites/<your site name>/_catalogs/users/simple.aspx
+$spoLanguage = "German"
+
+switch ($spoLanguage) {
+    German {
+
+        $localizedUserInformationList = "Benutzerinformationsliste"
+
+    }
+    English {
+
+        $localizedUserInformationList = "User Information List"
+
+    }
+    Default {
+
+        $localizedUserInformationList = "User Information List"
+
+    }
+}
+
 function Get-AllSPOListItems {
     param (
         [Parameter(Mandatory=$true)][string]$ListId
@@ -93,12 +116,7 @@ $sharePointSite = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://
 
 $existingSharePointLists = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists").value
 
-
-# https://mozzism.sharepoint.com/sites/AzureAutomation/_catalogs/users/simple.aspx
-
-$userInformationListId = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?`$filter=displayName eq 'Benutzerinformationsliste'").value.id
-
-# $userInformationList = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$userInformationListId/items?expand=fields").value.fields
+$userInformationListId = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?`$filter=displayName eq '$localizedUserInformationList'").value.id
 
 # Retrieve all list items
 . Get-AllSPOListItems -ListId $userInformationListId
