@@ -52,6 +52,8 @@ function Get-CsOnlineNumbers {
     
     }
 
+    $allCsOnlineNumbers = $allCsOnlineNumbers | Sort-Object TelephoneNumber -Unique
+
     return $allCsOnlineNumbers
     
 }

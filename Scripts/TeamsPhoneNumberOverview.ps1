@@ -37,7 +37,7 @@ function Get-AllSPOListItems {
     
         if ($querriedItems.'@odata.nextLink') {
     
-            Write-Output "List contains more than $($querriedItems.value.Count) itesm. Querrying additional items..."
+            Write-Output "List contains more than $($querriedItems.value.Count) items. Querrying additional items..."
     
             do {
     
@@ -213,7 +213,17 @@ if ($sharePointListItems) {
 
         else {
 
-            $assignReservedNumber = $true
+            if ($userPrincipalName) {
+
+                $assignReservedNumber = $true
+
+            }
+
+            else {
+
+                Write-Output "User with lookup id $($reservedNumber.UserProfileLookupId) is not available in the lookup table yet. The number will be assigned in the next job."
+
+            }
 
         }
 
@@ -369,7 +379,11 @@ $userCounter = 1
 
 foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
-    Write-Output "Working on $userCounter/$($allTeamsPhoneUsers.Count)..."
+    if ($userCounter % 100 -eq 0) {
+
+        Write-Output "Working on $userCounter/$($allTeamsPhoneUsers.Count)..."
+
+    }
     
     $teamsPhoneUserDetails = New-Object -TypeName psobject
 
@@ -577,19 +591,16 @@ $updateCounter = 1
 
 foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
-    Write-Output "Working on $updateCounter/$($allTeamsPhoneUserDetails.Count)..."
+    if ($updateCounter % 100 -eq 0) {
 
-    # if ($sharePointListItems.Title -contains $teamsPhoneNumber."Title" -and $teamsPhoneNumber."Title" -ne "Unassigned") {
+        Write-Output "Working on $updateCounter/$($allTeamsPhoneUserDetails.Count)..."
+
+    }
 
     if ($sharePointListItems.Title -contains $teamsPhoneNumber."Title") {
 
-        # entry already existis in list checking if data is up to date
-
-        # $itemId = ($sharePointListItems | Where-Object {$_.Title -eq $teamsPhoneNumber.Title}).id
-
-        # $checkEntry = (Invoke-RestMethod -Method Get -Headers $header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId`?expand=fields")
-
-        $checkEntry = ($sharePointListItems | Where-Object {$_.Title -eq $teamsPhoneNumber.Title})
+        $checkEntryIndex = $sharePointListItems.Title.IndexOf($teamsPhoneNumber.Title)
+        $checkEntry = $sharePointListItems[$checkEntryIndex]
 
         $itemId = $checkEntry.id
 
@@ -612,7 +623,7 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
             # no differences
 
-            Write-Output "Entry $($teamsPhoneNumber.Title) is already up to date and won't be updated..."
+            # Write-Output "Entry $($teamsPhoneNumber.Title) is already up to date and won't be updated..."
 
         }
 
@@ -676,8 +687,13 @@ $body = @"
         $body += ($teamsPhoneNumber | ConvertTo-Json)
         $body += "`n}"
 
-        Invoke-RestMethod -Method Post -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items"
+        # Only create list item if title is not empty
+        if ($teamsPhoneNumber.Title) {
 
+            Invoke-RestMethod -Method Post -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items"
+
+        }
+        
     }
 
     $updateCounter ++
