@@ -4,25 +4,6 @@ $localTestMode = $false
 # Set your language or add it to the switch statement
 # To find the name of your user information list, go to:
 # https://<your domain>.sharepoint.com/sites/<your site name>/_catalogs/users/simple.aspx
-$spoLanguage = "German"
-
-switch ($spoLanguage) {
-    German {
-
-        $localizedUserInformationList = "Benutzerinformationsliste"
-
-    }
-    English {
-
-        $localizedUserInformationList = "User Information List"
-
-    }
-    Default {
-
-        $localizedUserInformationList = "User Information List"
-
-    }
-}
 
 function Get-AllSPOListItems {
     param (
@@ -116,7 +97,10 @@ $sharePointSite = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://
 
 $existingSharePointLists = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists").value
 
-$userInformationListId = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?`$filter=displayName eq '$localizedUserInformationList'").value.id
+# $userInformationListId = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?`$filter=displayName eq '$localizedUserInformationList'").value.id
+
+# From: https://stackoverflow.com/questions/61143146/how-to-get-user-from-user-field-lookupid
+$userInformationListId = ((Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?select=id,name,system").value | Where-Object {$_.name -eq "users"}).id
 
 # Retrieve all list items
 . Get-AllSPOListItems -ListId $userInformationListId
