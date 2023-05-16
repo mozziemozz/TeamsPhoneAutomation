@@ -1,9 +1,7 @@
-﻿# Set to true if script is executed locally
-$localTestMode = $false
+﻿# Version: 2.0
 
-# Set your language or add it to the switch statement
-# To find the name of your user information list, go to:
-# https://<your domain>.sharepoint.com/sites/<your site name>/_catalogs/users/simple.aspx
+# Set to true if script is executed locally
+$localTestMode = $false
 
 function Get-AllSPOListItems {
     param (
