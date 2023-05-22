@@ -259,7 +259,7 @@ Write-Host "Adding the required Microsoft Graph permissions to $AADAppRegistrati
 $newAADServicePrincipalObjectId = ((npx m365 aad sp add --appId $newAppId | ConvertFrom-Json).Id).TrimEnd()
 
 npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "Organization.Read.All" --appId $newAppId
-npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "User.Read.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "User.ReadWrite.All" --appId $newAppId
 npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "Channel.Delete.All" --appId $newAppId
 npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "ChannelSettings.ReadWrite.All" --appId $newAppId
 npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "Group.ReadWrite.All" --appId $newAppId

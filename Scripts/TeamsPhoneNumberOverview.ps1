@@ -300,6 +300,41 @@ if ($sharePointListItems) {
                 Default {}
             }
 
+            # Trying to fix usage location errors
+            if ($usageLocationCheck -eq $false) {
+
+                # Usage location does not match phone number
+                $patchBody = @{UsageLocation=$($reservedNumber.Country)} | ConvertTo-Json
+
+                Invoke-RestMethod -Method Patch -Headers $Header -Uri "https://graph.microsoft.com/v1.0/users/$($checkCsOnlineUser.Identity)" -ContentType "application/json" -Body $patchBody
+                
+                if ($?) {
+
+                    do {
+                        Write-Output "Sleeping for 20s..."
+
+                        Start-Sleep 20
+
+                        $checkCsOnlineUser = Get-CsOnlineUser -Identity $checkCsOnlineUser.Identity
+                    } until (
+                        $checkCsOnlineUser.UsageLocation -eq $reservedNumber.Country
+                    )
+
+                    Write-Output "Usage location has been successfully changed to $($checkCsOnlineUser.UsageLocation) for user $($checkCsOnlineUser.UserPrincipalName)"
+
+                    $usageLocationCheck = $true
+                }
+
+                else {
+
+                    Write-Output "Error while trying to change usage location to $($checkCsOnlineUser.UsageLocation) for user $($checkCsOnlineUser.UserPrincipalName)"
+
+                    $usageLocationCheck = $false
+
+                }
+
+            }
+
             if ($licenseCheckSuccess -eq $true -and $usageLocationCheck -eq $true) {
 
                 Write-Output "License and Usage Location checks for user $userPrincipalName are successful."
