@@ -171,9 +171,9 @@ function Get-MZZSecureCreds {
 
             Write-Host "No credentials found for user: $adminUser..." -ForegroundColor Yellow
 
-            . New-MZZEncryptedPassword
+            . New-MZZEncryptedPassword -AdminUser $adminUser
 
-            . Get-MZZSecureCreds
+            . Get-MZZSecureCreds -AdminUser $adminUser
 
         }
 
