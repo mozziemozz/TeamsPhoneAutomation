@@ -162,7 +162,7 @@ function Get-MZZSecureCreds {
 
         if ($UpdatePassword) {
 
-            New-MZZEncryptedPassword
+            New-MZZEncryptedPassword -AdminUser $adminUser
 
         }
 
