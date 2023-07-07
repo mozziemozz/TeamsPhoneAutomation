@@ -96,7 +96,7 @@ switch ($IpType) {
 
         $netAddressMatch = $netAddress.Split(".")[0] + "." + $netAddress.Split(".")[1] + "." + $netAddress.Split(".")[2]
 
-        if ($IpAddress.StartsWith($netAddress)) {
+        if ($IpAddress.StartsWith($netAddressMatch)) {
 
             $workLocation = 2
             $workLocationName = "Remote"
@@ -115,7 +115,9 @@ switch ($IpType) {
 
         $ipInfo = Invoke-RestMethod -Method Get -Uri "https://ipapi.co/json"
 
-        if ($ipInfo.ip.StartsWith("$IpAddress")) {
+        $IpAddressMatch = $IpAddress.Split(".")[0] + "." + $IpAddress.Split(".")[1] + "." + $IpAddress.Split(".")[2]
+
+        if ($ipInfo.ip.StartsWith("$IpAddressMatch")) {
 
             $workLocation = 2
             $workLocationName = "Remote"
