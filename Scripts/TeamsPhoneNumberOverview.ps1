@@ -1,4 +1,4 @@
-﻿# Version: 2.0
+﻿# Version: 2.1
 
 # Set to true if script is executed locally
 $localTestMode = $false
@@ -388,8 +388,8 @@ $allDirectRoutingNumbers = $allDirectRoutingNumbers | ForEach-Object {"+" + $_.P
 $allCsOnlineNumbers = . Get-CsOnlineNumbers
 
 # Get all Teams users which have a phone number assigned
-$allTeamsPhoneUsers = Get-CsOnlineUser -Filter "LineURI -ne `$null"
-
+# $allTeamsPhoneUsers = Get-CsOnlineUser -Filter "LineURI -ne `$null" -ResultSize 9999
+$allTeamsPhoneUsers = Get-CsOnlineUser -Filter "(FeatureTypes -contains 'PhoneSystem') -or (FeatureTypes -contains 'VoiceApp')" -ResultSize 9999 | Select-Object Identity, UserPrincipalName, DisplayName, LineURI, FeatureTypes
 $allTeamsPhoneUserDetails = @()
 
 $userCounter = 1
@@ -401,22 +401,30 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
         Write-Output "Working on $userCounter/$($allTeamsPhoneUsers.Count)..."
 
     }
-    
-    $teamsPhoneUserDetails = New-Object -TypeName psobject
 
-    if ($teamsPhoneUser.FeatureTypes -contains "VoiceApp") {
+    # Check if user has a LineURI
 
-        $teamsPhoneUserType = "Resource Account"
+    if (!$teamsPhoneUser.LineUri) {
 
-    }
-
-    else {
-
-        $teamsPhoneUserType = "User Account"
+        $teamsPhoneUser = Get-CsOnlineUser -Identity $teamsPhoneUser.Identity | Select-Object Identity, UserPrincipalName, DisplayName, LineURI, FeatureTypes
 
     }
 
     if ($teamsPhoneUser.LineUri) {
+
+        $teamsPhoneUserDetails = New-Object -TypeName psobject
+
+        if ($teamsPhoneUser.FeatureTypes -contains "VoiceApp") {
+
+            $teamsPhoneUserType = "Resource Account"
+
+        }
+
+        else {
+
+            $teamsPhoneUserType = "User Account"
+
+        }
 
         $phoneNumber = $teamsPhoneUser.LineUri.Replace("tel:","")
 
@@ -468,23 +476,21 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         }
 
-
         $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Assigned"
         $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $numberType
         $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "City" -Value $city
         $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $country
 
+        $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value $teamsPhoneUser.DisplayName
+        $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" -Value $teamsPhoneUser.UserPrincipalName
+        $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value $teamsPhoneUserType
+        $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value $teamsPhoneUser.Identity
+
+        $userCounter ++
+
+        $allTeamsPhoneUserDetails += $teamsPhoneUserDetails
 
     }
-
-    $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value $teamsPhoneUser.DisplayName
-    $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" -Value $teamsPhoneUser.UserPrincipalName
-    $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value $teamsPhoneUserType
-    $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value $teamsPhoneUser.Identity
-
-    $userCounter ++
-
-    $allTeamsPhoneUserDetails += $teamsPhoneUserDetails
 
 }
 
