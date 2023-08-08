@@ -1,12 +1,12 @@
 @or(
-  and(
-    not(equals(triggerOutputs()?['body/User_x0020_Principal_x0020_Name'], 'Unassigned')),
-    not(contains(triggerBody(), 'UserProfile'))
-  ),
-  not(equals(toLower(triggerOutputs()?['body/User_x0020_Principal_x0020_Name']),toLower(triggerOutputs()?['body/UserProfile']['Email']))),
-  and(
-    contains(triggerBody(), 'UserProfile'),
-    not(equals(triggerOutputs()?['body/User_x0020_Principal_x0020_Name'], 'Unassigned')),
-    not(contains(triggerBody(), 'TeamsAdminCenter'))
-  )
+    and(
+        not(equals(triggerOutputs()?['body/User_x0020_Principal_x0020_Name'], 'Unassigned')),
+        not(contains(triggerBody(), 'UserProfile'))
+    ),
+    not(equals(toLower(triggerOutputs()?['body/User_x0020_Principal_x0020_Name']), toLower(triggerOutputs()?['body/UserProfile']['Email']))),
+    and(
+        contains(triggerBody(), 'UserProfile'),
+        not(equals(triggerOutputs()?['body/User_x0020_Principal_x0020_Name'], 'Unassigned')),
+        not(contains(triggerBody(), 'TeamsAdminCenter'))
+    )
 )
