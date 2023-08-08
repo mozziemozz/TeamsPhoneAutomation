@@ -207,3 +207,43 @@ function Get-MZZSecureCreds {
     }
 
 }
+
+function Get-MZZTenantIdTxt {
+    param (
+    )
+
+    if (!(Test-Path -Path .\.local\SecureCreds\TenantId.txt)) {
+
+        $TenantId = Read-Host "Enter your Tenant Id"
+
+        Set-Content -Path .\.local\SecureCreds\TenantId.txt -Value $TenantId
+
+    }
+
+    else {
+
+        $TenantId = (Get-Content -Path .\.local\SecureCreds\TenantId.txt).Trim()
+
+    }
+    
+}
+
+function Get-MZZAppIdTxt {
+    param (
+    )
+
+    if (!(Test-Path -Path .\.local\SecureCreds\AppId.txt)) {
+
+        $AppId = Read-Host "Enter your App Id"
+
+        Set-Content -Path .\.local\SecureCreds\AppId.txt -Value $AppId
+
+    }
+
+    else {
+
+        $AppId = (Get-Content -Path .\.local\SecureCreds\AppId.txt).Trim()
+
+    }
+    
+}
