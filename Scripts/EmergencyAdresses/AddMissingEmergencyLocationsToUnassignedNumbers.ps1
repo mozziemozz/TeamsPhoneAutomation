@@ -1,3 +1,5 @@
+#Requires -Modules @{ ModuleName = "MicrosoftTeams"; ModuleVersion = "5.4.0" }
+
 # Import external functions
 . .\Functions\Connect-MsTeamsServicePrincipal.ps1
 . .\Functions\Get-CsOnlineNumbers.ps1
@@ -14,7 +16,7 @@ $AppSecret = $passwordDecrypted
 # Get CsOnline Numbers
 $allCsOnlineNumbers = . Get-CsOnlineNumbers
 
-$numbersWithoutEmergencyLocation = $allCsOnlineNumbers | Where-Object {!$_.LocationId -and $_.Capability -notcontains "ConferenceAssignment" -and $_.City -ne "Toll-Free"}
+$numbersWithoutEmergencyLocation = $allCsOnlineNumbers | Where-Object {!$_.LocationId -and $_.Capability -notcontains "ConferenceAssignment" -and $_.City -ne "Toll-Free" -and $_.LocationUpdateSupported -eq $true}
 
 foreach ($number in $numbersWithoutEmergencyLocation) {
 
@@ -22,7 +24,19 @@ foreach ($number in $numbersWithoutEmergencyLocation) {
 
     $matchingEmergencyLocationId = ($allCsOnlineNumbers | Where-Object {$_.City -eq $number.City -and $_.LocationId -ne $null}).LocationId[0]
 
-    Set-CsPhoneNumberAssignment -PhoneNumber $number.TelephoneNumber -LocationId $matchingEmergencyLocationId
+    if ($matchingEmergencyLocationId) {
+
+        Write-Host "Setting Location Id '$matchingEmergencyLocationId' for number $($number.TelephoneNumber)..."
+
+        Set-CsPhoneNumberAssignment -PhoneNumber $number.TelephoneNumber -LocationId $matchingEmergencyLocationId
+
+    }
+
+    else {
+
+        Write-Host "No existing Location Id found for number $($number.Telephonenumber)..."
+
+    }
 
 }
 
