@@ -25,6 +25,8 @@
 
     git clone https://github.com/mozziemozz/TeamsPhoneAutomation.git
 
+    The API used in this script doesn't require any Teams admin permissions. Credentials of any Teams user suffice.
+
     .EXAMPLE
     Import functions by dot sourcing:
     . .\ValidateTeamsReverseNumberLookup.ps1 
@@ -33,9 +35,8 @@
     . Test-MZZTeamsLineURIAssignment -LineURI "+1234567890" -AdminUser "user@domain.com" -MFA $true
     . Test-MZZTeamsLineURIAssignment -LineURI "+1234567890" -AdminUser "user@domain.com" -MFA $false
 
-    Note: this API doesn't require any Teams admin permissions since it only validates the assignment of a LineURI to a Teams user which can also be done from the Teams client.
-
 #>
+
 function Get-MZZTeamsTokenForSkyeApi {
 
     [CmdletBinding()]
