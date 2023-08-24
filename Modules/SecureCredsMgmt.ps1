@@ -80,11 +80,15 @@ function New-MZZEncryptedPassword {
 
         Set-Content -Path "$secureCredsFolder\$($FileName).txt" -Value $PasswordHash -Force
 
+        Get-MZZSecureCreds -fileName $FileName
+
     }
 
     else {
 
         Set-Content -Path "$secureCredsFolder\$($adminUser).txt" -Value $PasswordHash -Force
+
+        Get-MZZSecureCreds -AdminUser $adminUser
 
     }
 
@@ -124,9 +128,7 @@ function Get-MZZSecureCreds {
 
             Write-Host "No password found for filename: $FileName..." -ForegroundColor Yellow
 
-            . New-MZZEncryptedPassword -fileName $FileName
-
-            . Get-MZZSecureCreds -fileName $FileName
+            New-MZZEncryptedPassword -fileName $FileName
 
         }
 
@@ -136,7 +138,7 @@ function Get-MZZSecureCreds {
 
             if (!$passwordEncrypted) {
 
-                . New-MZZEncryptedPassword -fileName $FileName
+                New-MZZEncryptedPassword -fileName $FileName
 
             }
 
@@ -171,9 +173,7 @@ function Get-MZZSecureCreds {
 
             Write-Host "No credentials found for user: $adminUser..." -ForegroundColor Yellow
 
-            . New-MZZEncryptedPassword -AdminUser $adminUser
-
-            . Get-MZZSecureCreds -AdminUser $adminUser
+            New-MZZEncryptedPassword -AdminUser $adminUser
 
         }
 
@@ -183,7 +183,7 @@ function Get-MZZSecureCreds {
 
             if (!$adminPasswordEncrypted) {
 
-                . New-MZZEncryptedPassword
+                New-MZZEncryptedPassword
 
             }
 
@@ -202,7 +202,7 @@ function Get-MZZSecureCreds {
 
         Write-Host "Credentials are stored in `$secureCreds variable!" -ForegroundColor Cyan
 
-        return $secureCreds
+        return $secureCreds > $null
 
     }
 
