@@ -19,6 +19,12 @@
     .PARAMETER LineURI
     Specifies the LineURI to validate.
 
+    .NOTES
+    The functions in these script use dependencies of the GitHub repository referenced in .DESCRIPTION.
+    Clone the repository or download all files to the same directory to use it.
+
+    git clone https://github.com/mozziemozz/TeamsPhoneAutomation.git
+
     .EXAMPLE
     Import functions by dot sourcing:
     . .\ValidateTeamsReverseNumberLookup.ps1 
@@ -50,7 +56,9 @@ function Get-MZZTeamsTokenForSkyeApi {
 
     . Get-MZZSecureCreds -AdminUser $AdminUser
 
-    $functions = Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\AADInternals\0.9.0" -Filter "*.ps1"
+    $aadInternalsVersion = (Get-Module -ListAvailable -Name "AADInternals").Version
+
+    $functions = Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\AADInternals\$($aadInternalsVersion.Major).$($aadInternalsVersion.Minor).$($aadInternalsVersion.Build)" -Filter "*.ps1"
 
     $functions = $functions | Where-Object {$_.Name -match "Teams" -or $_.Name -match "AccessToken" -or $_.Name -match "CommonUtils"}
 
@@ -119,12 +127,18 @@ function Test-MZZTeamsLineURIAssignment {
 
         Write-Warning -Message "The LineURI $LineURI is not assigned to a Teams user or there is an issue with the assignment in."
 
+        $assignmentIsValid = $false
+
     }
 
     else {
         
         Write-Host "The LineURI $LineURI is assigned to user $($reverseNumberLookup.objectId). The assignment has been validated by reverse number lookup successfully." -ForegroundColor Green
 
+        $assignmentIsValid = $true
+
     }
+
+    return $assignmentIsValid > $null
 
 }
