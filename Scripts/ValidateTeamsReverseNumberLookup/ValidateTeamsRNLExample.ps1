@@ -1,3 +1,18 @@
+<#
+    .SYNOPSIS
+    Example script to validate Teams phone number assignments by using reverse number lookup function from this repo.
+
+    .DESCRIPTION
+    Author:             Martin Heusser
+    Version:            1.0.0
+    Sponsor Project:    https://github.com/sponsors/mozziemozz
+    Website:            https://heusser.pro
+
+    .EXAMPLE
+    . .\ValidateTeamsRNLExample.ps1
+
+#>
+
 # Change these variables to match your environment
 $adminUser = "user@domain.com"
 $mfa = $false
@@ -11,6 +26,9 @@ $lineURIs = @(
 
 )
 
+# End of adjustable variables
+
+# Import functions by dot sourcing
 . .\Scripts\ValidateTeamsReverseNumberLookup\ValidateTeamsReverseNumberLookup.ps1
 
 $results = @()
