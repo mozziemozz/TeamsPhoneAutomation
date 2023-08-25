@@ -126,7 +126,7 @@ function Test-MZZTeamsLineURIAssignment {
 
     if ($Error[0].Exception.Message -match "404") {
 
-        Write-Warning -Message "The LineURI $LineURI is not assigned to a Teams user or there is an issue with the assignment in."
+        Write-Host "The LineURI $LineURI is not assigned to a Teams user or there is an issue with the assignment." -ForegroundColor Yellow
 
         $assignmentIsValid = $false
 
@@ -134,7 +134,7 @@ function Test-MZZTeamsLineURIAssignment {
 
     else {
         
-        Write-Host "The LineURI $LineURI is assigned to user $($reverseNumberLookup.objectId). The assignment has been validated by reverse number lookup successfully." -ForegroundColor Green
+        Write-Host "The LineURI $LineURI is assigned successfully. The assignment has been validated by RNL." -ForegroundColor Green
 
         $assignmentIsValid = $true
 
