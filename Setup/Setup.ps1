@@ -363,7 +363,7 @@ New-AzAutomationVariable -AutomationAccountName $automationAccountName -Name "Te
 
 # Upload function runbooks
 
-$functionRunbooks = Get-ChildItem -Path .\Functions | Where-Object {$_.Name -notmatch "Local"}
+$functionRunbooks = Get-ChildItem -Path .\Functions | Where-Object {$_.Name -notmatch "Local" -and $_.Name -match ".ps1"}
 
 foreach ($functionRunbook in $functionRunbooks) {
 
