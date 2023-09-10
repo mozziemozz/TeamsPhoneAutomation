@@ -1,0 +1,60 @@
+{
+  "displayName": "Name Placeholder",
+  "columns": [
+    {
+      "name": "Phone Number",
+      "text": { }
+    },
+    {
+      "name": "Phone Extension",
+      "text": { }
+    },
+    {
+        "name": "Status",
+        "text": { }
+    },
+    {
+      "name": "Comment",
+      "text": { }
+    },
+    {
+      "name": "Previous User",
+      "text": { }
+    },
+    {
+        "name": "Number Type",
+        "text": { }
+    },
+    {
+      "name": "Operator",
+      "text": { }
+    },
+    {
+        "name": "User Name",
+        "text": { }
+    },
+    {
+        "name": "User Principal Name",
+        "text": { }
+    },
+    {
+        "name": "Account Type",
+        "text": { }
+    },
+    {
+      "name": "City",
+      "text": { }
+    },
+    {
+      "name": "Country",
+      "text": { }
+    },
+    {
+      "name": "UserId",
+      "text": { }
+    }
+  ],
+  "list": {
+    "template": "genericList"
+  }
+}

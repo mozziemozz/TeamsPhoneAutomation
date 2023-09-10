@@ -1,4 +1,4 @@
-﻿# Version: 2.2
+﻿# Version: 2.3
 
 # Set to true if script is executed locally
 $localTestMode = $true
@@ -58,7 +58,7 @@ switch ($localTestMode) {
         $groupId = Get-Content -Path .\.local\GroupId.txt
 
         # Import Direct Routing numbers
-        $allDirectRoutingNumbers = Import-Csv -Path .\Resources\DirectRoutingNumbers.csv -Encoding UTF8
+        $allDirectRoutingNumbers = Import-Csv -Path .\Resources\DirectRoutingNumbers-V2.csv -Encoding UTF8 -Delimiter ";"
 
         # Get previous total number count
         $totalNumberCount = Get-Content -Path .\.local\TeamsPhoneNumberOverview_TotalNumberCount.txt
@@ -137,7 +137,7 @@ else {
     
             # Local Environment
     
-            $createListJson = (Get-Content -Path .\Resources\CreateList.json).Replace("Name Placeholder",$MsListName)
+            $createListJson = (Get-Content -Path .\Resources\CreateList-V2.json).Replace("Name Placeholder",$MsListName)
             
         }
     
@@ -396,13 +396,13 @@ if ($sharePointListItems) {
 }
 
 # Add leading plus ("+") to all numbers
-$allDirectRoutingNumbers = $allDirectRoutingNumbers | ForEach-Object {"+" + $_.PhoneNumber}
+$allDirectRoutingNumbers | ForEach-Object {$_.PhoneNumber = "+$($_.PhoneNumber)"}
 
 # Get CsOnline Numbers
 $allCsOnlineNumbers = . Get-CsOnlineNumbers
 
 # All phone numbers, CP, OC and DR (DR numbers are read from the LineURI attribute of Teams users)
-$allTelephoneNumbers = ($allCsOnlineNumbers.TelephoneNumber + ($allDirectRoutingNumbers | Where-Object {$_ -notin $allCsOnlineNumbers.TelephoneNumber}))
+$allTelephoneNumbers = ($allCsOnlineNumbers.TelephoneNumber + ($allDirectRoutingNumbers.PhoneNumber | Where-Object {$_ -notin $allCsOnlineNumbers.TelephoneNumber}))
 
 switch ($localTestMode) {
     $true {
@@ -549,6 +549,8 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
             $matchingCsOnlineNumber = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq ($teamsPhoneUser.LineUri).Replace("tel:","")})
 
+            $operatorName = $matchingCsOnlineNumber.PstnPartnerName
+
             $numberType = $matchingCsOnlineNumber.NumberType
             $city = $matchingCsOnlineNumber.City
 
@@ -570,6 +572,9 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
             $assignedDirectRoutingNumberCity = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq $phoneNumber}).City
 
+            $directRoutingNumberIndex = $allDirectRoutingNumbers.PhoneNumber.IndexOf($phoneNumber)
+            $operatorName = $allDirectRoutingNumbers.Operator[$directRoutingNumberIndex]
+
             $numberType = "DirectRouting"
             $city = $assignedDirectRoutingNumberCity
 
@@ -579,6 +584,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Assigned"
         $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $numberType
+        $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Operator" -Value $operatorName
         $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "City" -Value $city
         $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $country
 
@@ -594,6 +600,8 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
     }
 
 }
+
+$unassignedRoutingRules = Get-CsTeamsUnassignedNumberTreatment
 
 # Get all unassigned Calling Plan and Operator Connect phone numbers or all conference assigned numbers
 foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$_.PstnAssignmentStatus -eq "ConferenceAssigned" -or ($null -eq $_.AssignedPstnTargetId -and $_.NumberType -ne "DirectRouting")}) {
@@ -623,6 +631,7 @@ foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$_.PstnAssignmen
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Assigned"
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $csOnlineNumber.NumberType
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Operator" -Value $csOnlineNumber.PstnPartnerName
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "City" -Value $csOnlineNumber.City
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $csOnlineNumber.IsoCountryCode
     
@@ -642,6 +651,7 @@ foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$_.PstnAssignmen
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Unassigned"
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $csOnlineNumber.NumberType
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Operator" -Value $csOnlineNumber.PstnPartnerName
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "City" -Value $csOnlineNumber.City
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $csOnlineNumber.IsoCountryCode
     
@@ -678,18 +688,43 @@ foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$_.PstnAssignmen
 
     }
 
+    $ruleMatches = @()
+
+    foreach ($rule in $unassignedRoutingRules) {
+
+        if ($phoneNumber -match $rule.Pattern) {
+
+            $ruleMatches += $rule
+
+        }
+
+    }
+
+    if ($ruleMatches) {
+
+        if ($ruleMatches.Count -gt 1) {
+
+            $ruleMatches = ($ruleMatches | Sort-Object -Property TreatmentPriority)[0]
+    
+        }
+
+        $csOnlineNumberDetails.Status = "Unassigned (Routing Rule)"
+        $csOnlineNumberDetails.User_x0020_Name = "Unassigned Routing Rule: $($ruleMatches.Identity)"
+
+    }
+
     $allTeamsPhoneUserDetails += $csOnlineNumberDetails
 
 }
 
 # Get all unassigned Direct Routing Numbers
-$directRoutingNumbers = $allDirectRoutingNumbers | Where-Object {$allTeamsPhoneUserDetails."Title" -notcontains $_ }
+$directRoutingNumbers = $allDirectRoutingNumbers | Where-Object {$allTeamsPhoneUserDetails."Title" -notcontains $_.PhoneNumber }
 
 foreach ($directRoutingNumber in $directRoutingNumbers) {
 
     $directRoutingNumberDetails = New-Object -TypeName psobject
 
-    $phoneNumber = $directRoutingNumber
+    $phoneNumber = $directRoutingNumber.PhoneNumber
 
     $phoneNumberPrettyIndex = $prettyNumbers.original.IndexOf($phoneNumber)
 
@@ -707,11 +742,12 @@ foreach ($directRoutingNumber in $directRoutingNumbers) {
 
     $country = . Get-CountryFromPrefix
 
-    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $directRoutingNumber
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $directRoutingNumber.PhoneNumber
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "PhoneNumber" -Value $phoneNumberPretty
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Status" -Value "Unassigned"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value "DirectRouting"
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Operator" -Value $directRoutingNumber.Operator
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "City" -Value "N/A"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $country
 
@@ -719,6 +755,31 @@ foreach ($directRoutingNumber in $directRoutingNumbers) {
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" "Unassigned"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value "User Account, Resource Account"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value "Unassigned"
+
+    $ruleMatches = @()
+
+    foreach ($rule in $unassignedRoutingRules) {
+
+        if ($phoneNumber -match $rule.Pattern) {
+
+            $ruleMatches += $rule
+
+        }
+
+    }
+
+    if ($ruleMatches) {
+
+        if ($ruleMatches.Count -gt 1) {
+
+            $ruleMatches = ($ruleMatches | Sort-Object -Property TreatmentPriority)[0]
+    
+        }
+
+        $directRoutingNumberDetails.Status = "Unassigned (Routing Rule)"
+        $directRoutingNumberDetails.User_x0020_Name = "Unassigned Routing Rule: $($ruleMatches.Identity)"
+
+    }
 
     $allTeamsPhoneUserDetails += $directRoutingNumberDetails
 
@@ -766,6 +827,7 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
         $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value $checkEntry.Phone_x0020_Extension
         $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Status" -Value $checkEntry.Status
         $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Number_x0020_Type" -Value $checkEntry.Number_x0020_Type
+        $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Operator" -Value $checkEntry.Operator
         $checkEntryObject | Add-Member -MemberType NoteProperty -Name "City" -Value $checkEntry.City
         $checkEntryObject | Add-Member -MemberType NoteProperty -Name "Country" -Value $checkEntry.Country
         $checkEntryObject | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value $checkEntry.User_x0020_Name
