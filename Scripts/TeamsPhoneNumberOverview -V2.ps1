@@ -1,4 +1,4 @@
-﻿# Version: 2.3
+# Version: 2.3.1
 
 # Set to true if script is executed locally
 $localTestMode = $true
@@ -157,6 +157,84 @@ else {
 
 }
 
+# Add leading plus ("+") to all numbers
+$allDirectRoutingNumbers | ForEach-Object { $_.PhoneNumber = "+$($_.PhoneNumber)" }
+
+# Get CsOnline Numbers
+$allCsOnlineNumbers = . Get-CsOnlineNumbers
+
+# All phone numbers, CP, OC and DR (DR numbers are read from the LineURI attribute of Teams users)
+$allTelephoneNumbers = ($allCsOnlineNumbers.TelephoneNumber + ($allDirectRoutingNumbers.PhoneNumber | Where-Object { $_ -notin $allCsOnlineNumbers.TelephoneNumber }))
+
+switch ($localTestMode) {
+    $true {
+
+        # Check if total number count is not the same
+        if ($allTelephoneNumbers.Count -ne $totalNumberCount) {
+
+            # Save all numbers as string to local text file
+            Set-Content -Path .\.local\TeamsPhoneNumberOverview_AllCsOnlineNumbers.txt -Value ($allTelephoneNumbers -join ";")
+
+            Write-Output "All telephone numbers set to local text file."
+
+            # Update total number count
+            Set-Content -Path .\.local\TeamsPhoneNumberOverview_TotalNumberCount.txt -Value ($allTelephoneNumbers.Count)
+
+            Write-Output "Total number count in local text file updated."
+
+            Write-Output "using python to prettify numbers..."
+
+            & python ".\Functions\Format-TeamsPhoneNumbers.py"
+        
+        }
+
+        else {
+
+            Write-Output "Number count is the same as in previous job. Prettified numbers won't be updated."
+
+        }
+
+        # Import prettified numbers from local text file
+        $prettyNumbers = (Get-Content -Path .\.local\TeamsPhoneNumberOverview_PrettyNumbers.txt).Replace("'", "") | ConvertFrom-Json
+
+    }
+    $false {
+
+        # Check if total number count is not the same
+        if ($allTelephoneNumbers.Count -ne $totalNumberCount) {
+
+            # Save all numbers as string to automation variable
+            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_AllCsOnlineNumbers" -Value ($allTelephoneNumbers -join ";")
+
+            Write-Output "All telephone numbers set to automation variable."
+
+            # Update total number count
+            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_TotalNumberCount" -Value ($allTelephoneNumbers.Count)
+
+            Write-Output "Total number count automation variable updated."
+
+            Write-Output "Starting python runbook"
+
+            Start-AzAutomationRunbook -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName $runbookName -MaxWaitSeconds 1000 -Wait
+
+            Write-Output "Python runbook finished."
+
+        }
+
+        else {
+
+            Write-Output "Number count is the same as in previous job. Prettified numbers won't be updated."
+
+        }
+
+        # Import prettified numbers from automation variable
+        $prettyNumbers = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_PrettyNumbers").Replace("'", "") | ConvertFrom-Json
+
+    }
+    Default {}
+}
+
+# Get all items from SharePoint list (phone numbers)
 . Get-AllSPOListItems -ListId $sharePointListId
 
 if ($sharePointListItems) {
@@ -393,83 +471,6 @@ if ($sharePointListItems) {
 
     }
     
-}
-
-# Add leading plus ("+") to all numbers
-$allDirectRoutingNumbers | ForEach-Object {$_.PhoneNumber = "+$($_.PhoneNumber)"}
-
-# Get CsOnline Numbers
-$allCsOnlineNumbers = . Get-CsOnlineNumbers
-
-# All phone numbers, CP, OC and DR (DR numbers are read from the LineURI attribute of Teams users)
-$allTelephoneNumbers = ($allCsOnlineNumbers.TelephoneNumber + ($allDirectRoutingNumbers.PhoneNumber | Where-Object {$_ -notin $allCsOnlineNumbers.TelephoneNumber}))
-
-switch ($localTestMode) {
-    $true {
-
-        # Check if total number count is not the same
-        if ($allTelephoneNumbers.Count -ne $totalNumberCount) {
-
-            # Save all numbers as string to local text file
-            Set-Content -Path .\.local\TeamsPhoneNumberOverview_AllCsOnlineNumbers.txt -Value ($allTelephoneNumbers -join ";")
-
-            Write-Output "All telephone numbers set to local text file."
-
-            # Update total number count
-            Set-Content -Path .\.local\TeamsPhoneNumberOverview_TotalNumberCount.txt -Value ($allTelephoneNumbers.Count)
-
-            Write-Output "Total number count in local text file updated."
-
-            Write-Output "using python to prettify numbers..."
-
-            & python ".\Functions\Format-TeamsPhoneNumbers.py"
-        
-        }
-
-        else {
-
-            Write-Output "Number count is the same as in previous job. Prettified numbers won't be updated."
-
-        }
-
-        # Import prettified numbers from local text file
-        $prettyNumbers = (Get-Content -Path .\.local\TeamsPhoneNumberOverview_PrettyNumbers.txt).Replace("'", "") | ConvertFrom-Json
-
-    }
-    $false {
-
-        # Check if total number count is not the same
-        if ($allTelephoneNumbers.Count -ne $totalNumberCount) {
-
-            # Save all numbers as string to automation variable
-            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_AllCsOnlineNumbers" -Value ($allTelephoneNumbers -join ";")
-
-            Write-Output "All telephone numbers set to automation variable."
-
-            # Update total number count
-            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_TotalNumberCount" -Value ($allTelephoneNumbers.Count)
-
-            Write-Output "Total number count automation variable updated."
-
-            Write-Output "Starting python runbook"
-
-            Start-AzAutomationRunbook -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName $runbookName -MaxWaitSeconds 1000 -Wait
-
-            Write-Output "Python runbook finished."
-
-        }
-
-        else {
-
-            Write-Output "Number count is the same as in previous job. Prettified numbers won't be updated."
-
-        }
-
-        # Import prettified numbers from automation variable
-        $prettyNumbers = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_PrettyNumbers").Replace("'","") | ConvertFrom-Json
-
-    }
-    Default {}
 }
 
 # Get all Teams users which have a phone number assigned
@@ -849,7 +850,30 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
             if ($checkEntry.Status -eq "Reserved" -and $teamsPhoneNumber.Status -eq "Unassigned") {
 
-                Write-Output "Entry $($teamsPhoneNumber.Title) is reserved and will not be updated..."
+                if (!$checkEntry.PhoneNumber) {
+
+                    $newFormattedNumber = $teamsPhoneNumber.PhoneNumber
+                    $teamsPhoneNumber = $checkEntryObject
+                    $teamsPhoneNumber.PhoneNumber = $newFormattedNumber
+
+                    $body = @"
+{
+"fields": 
+
+"@
+        
+                    $body += ($teamsPhoneNumber | ConvertTo-Json)
+                    $body += "`n}"
+        
+                    Invoke-RestMethod -Method Patch -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId"
+
+                }
+
+                else {
+
+                    Write-Output "Entry $($teamsPhoneNumber.Title) is reserved and will not be updated..."
+
+                }
 
             }
 
