@@ -1,4 +1,4 @@
-# Version: 2.3.2
+# Version: 2.3.3
 
 # Set to true if script is executed locally
 $localTestMode = $true
@@ -113,7 +113,7 @@ $existingSharePointLists = (Invoke-RestMethod -Method Get -Headers $Header -Uri 
 # $userInformationListId = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?`$filter=displayName eq '$localizedUserInformationList'").value.id
 
 # From: https://stackoverflow.com/questions/61143146/how-to-get-user-from-user-field-lookupid
-$userInformationListId = ((Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?select=id,name,system").value | Where-Object { $_.name -eq "users" }).id
+$userInformationListId = ((Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?select=id,name,system").value | Where-Object {$_.name -eq "users"}).id
 
 # Retrieve all list items
 . Get-AllSPOListItems -ListId $userInformationListId
@@ -125,7 +125,7 @@ if ($existingSharePointLists.name -contains $MsListName) {
 
     Write-Output "A list with the name $MsListName already exists in site $($sharePointSite.name). No new list will be created."
 
-    $sharePointListId = ($existingSharePointLists | Where-Object { $_.Name -eq $MsListName }).id
+    $sharePointListId = ($existingSharePointLists | Where-Object {$_.Name -eq $MsListName}).id
 
 }
 
@@ -158,104 +158,6 @@ else {
 
 }
 
-# Add leading plus ("+") to all numbers
-$allDirectRoutingNumbers | ForEach-Object { $_.PhoneNumber = "+$($_.PhoneNumber)" }
-
-# Get CsOnline Numbers
-$allCsOnlineNumbers = . Get-CsOnlineNumbers
-
-# All phone numbers, CP, OC and DR
-$allTelephoneNumbers = $allCsOnlineNumbers.TelephoneNumber
-$allTelephoneNumbers += $allDirectRoutingNumbers.PhoneNumber
-$allTelephoneNumbers = $allTelephoneNumbers | Sort-Object -Unique
-$allTelephoneNumbersCount = $allTelephoneNumbers.Count
-
-switch ($localTestMode) {
-    $true {
-
-        # Check if total number count is not the same
-        if ($allTelephoneNumbersCount -ne $totalNumberCount) {
-
-            # Save all numbers as string to local text file
-
-            $allTelephoneNumbers = $allTelephoneNumbers -join ";"
-
-            if ($allTelephoneNumbers[-1] -eq ";") {
-
-                $allTelephoneNumbers = $allTelephoneNumbers.Substring(0, $allTelephoneNumbers.Length - 1)
-
-            }
-
-            Set-Content -Path .\.local\TeamsPhoneNumberOverview_AllCsOnlineNumbers.txt -Value $allTelephoneNumbers
-
-            Write-Output "All telephone numbers set to local text file."
-
-            # Update total number count
-            Set-Content -Path .\.local\TeamsPhoneNumberOverview_TotalNumberCount.txt -Value ($allTelephoneNumbersCount)
-
-            Write-Output "Total number count in local text file updated."
-
-            Write-Output "using python to prettify numbers..."
-
-            & python ".\Functions\Format-TeamsPhoneNumbers.py"
-        
-        }
-
-        else {
-
-            Write-Output "Number count is the same as in previous job. Prettified numbers won't be updated."
-
-        }
-
-        # Import prettified numbers from local text file
-        $prettyNumbers = (Get-Content -Path .\.local\TeamsPhoneNumberOverview_PrettyNumbers.txt).Replace("'", "") | ConvertFrom-Json
-
-    }
-    $false {
-
-        # Check if total number count is not the same
-        if ($allTelephoneNumbersCount -ne $totalNumberCount) {
-
-            # Save all numbers as string to automation variable
-
-            $allTelephoneNumbers = $allTelephoneNumbers -join ";"
-
-            if ($allTelephoneNumbers[-1] -eq ";") {
-
-                $allTelephoneNumbers = $allTelephoneNumbers.Substring(0, $allTelephoneNumbers.Length - 1)
-
-            }
-
-            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_AllCsOnlineNumbers" -Value $allTelephoneNumbers
-
-            Write-Output "All telephone numbers set to automation variable."
-
-            # Update total number count
-            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_TotalNumberCount" -Value ($allTelephoneNumbersCount)
-
-            Write-Output "Total number count automation variable updated."
-
-            Write-Output "Starting python runbook"
-
-            Start-AzAutomationRunbook -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName $runbookName -MaxWaitSeconds 1000 -Wait
-
-            Write-Output "Python runbook finished."
-
-        }
-
-        else {
-
-            Write-Output "Number count is the same as in previous job. Prettified numbers won't be updated."
-
-        }
-
-        # Import prettified numbers from automation variable
-        $prettyNumbers = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_PrettyNumbers").Replace("'", "") | ConvertFrom-Json
-
-    }
-    Default {}
-}
-
 # Get all items from SharePoint list (phone numbers)
 . Get-AllSPOListItems -ListId $sharePointListId
 
@@ -263,23 +165,23 @@ if ($sharePointListItems) {
 
     # Unassign numbers
 
-    foreach ($reservedNumber in ($sharePointListItems | Where-Object { $_.Status -eq "Remove Pending" -and $_.User_x0020_Principal_x0020_Name -ne "Unassigned" })) {
+    foreach ($reservedNumber in ($sharePointListItems | Where-Object {$_.Status -eq "Remove Pending" -and $_.User_x0020_Principal_x0020_Name -ne "Unassigned"})) {
 
         Write-Output "Trying to remove the number $($reservedNumber.Title) from user $($reservedNumber.User_x0020_Principal_x0020_Name)..."
 
         Remove-CsPhoneNumberAssignment -Identity $reservedNumber.User_x0020_Principal_x0020_Name -RemoveAll
 
-        Write-Output "Sleeping for 30s..."
+        # Write-Output "Sleeping for 30s..."
 
-        Start-Sleep 30
+        # Start-Sleep 30
 
     }
 
     # Assign reserved numbers
 
-    foreach ($reservedNumber in ($sharePointListItems | Where-Object { ($_.Status -eq "Reserved" -or $_.Status -eq "Assignment Error") -and ($_.UserProfileLookupId -ne $null -or $_.User_x0020_Principal_x0020_Name -ne "Unassigned")})) {
+    foreach ($reservedNumber in ($sharePointListItems | Where-Object {($_.Status -eq "Reserved" -or $_.Status -eq "Assignment Error") -and ($_.UserProfileLookupId -ne $null -or $_.User_x0020_Principal_x0020_Name -ne "Unassigned")})) {
 
-        $userPrincipalName = ($userLookupIds | Where-Object { $_.UserSelection -eq $reservedNumber.UserProfileLookupId }).Username
+        $userPrincipalName = ($userLookupIds | Where-Object {$_.UserSelection -eq $reservedNumber.UserProfileLookupId}).Username
 
         if (!$userPrincipalName) {
 
@@ -345,7 +247,7 @@ if ($sharePointListItems) {
 
                 Write-Output "User $userPrincipalName is not available in the tenant. Number $($reservedNumber.Title) will not be assigned."
 
-                ($sharePointListItems | Where-Object { $_.Title -eq $reservedNumber.Title }).Status = "Assignment Error"
+                ($sharePointListItems | Where-Object {$_.Title -eq $reservedNumber.Title}).Status = "Assignment Error"
 
                 $assignReservedNumber = $false
 
@@ -357,7 +259,7 @@ if ($sharePointListItems) {
 
             Write-Output "User $userPrincipalName is not available in the tenant. Number $($reservedNumber.Title) will not be assigned."
 
-            ($sharePointListItems | Where-Object { $_.Title -eq $reservedNumber.Title }).Status = "Assignment Error"
+            ($sharePointListItems | Where-Object {$_.Title -eq $reservedNumber.Title}).Status = "Assignment Error"
 
             $assignReservedNumber = $false
 
@@ -525,7 +427,7 @@ if ($sharePointListItems) {
 
                 }
 
-                ($sharePointListItems | Where-Object { $_.Title -eq $reservedNumber.Title }).Status = "Assignment Error"
+                ($sharePointListItems | Where-Object {$_.Title -eq $reservedNumber.Title}).Status = "Assignment Error"
 
             }
 
@@ -533,6 +435,104 @@ if ($sharePointListItems) {
 
     }
     
+}
+
+# Add leading plus ("+") to all numbers
+$allDirectRoutingNumbers | ForEach-Object {$_.PhoneNumber = "+$($_.PhoneNumber)" }
+
+# Get CsOnline Numbers
+$allCsOnlineNumbers = . Get-CsOnlineNumbers
+
+# All phone numbers, CP, OC and DR
+$allTelephoneNumbers = $allCsOnlineNumbers.TelephoneNumber
+$allTelephoneNumbers += $allDirectRoutingNumbers.PhoneNumber
+$allTelephoneNumbers = $allTelephoneNumbers | Sort-Object -Unique
+$allTelephoneNumbersCount = $allTelephoneNumbers.Count
+
+switch ($localTestMode) {
+    $true {
+
+        # Check if total number count is not the same
+        if ($allTelephoneNumbersCount -ne $totalNumberCount) {
+
+            # Save all numbers as string to local text file
+
+            $allTelephoneNumbers = $allTelephoneNumbers -join ";"
+
+            if ($allTelephoneNumbers[-1] -eq ";") {
+
+                $allTelephoneNumbers = $allTelephoneNumbers.Substring(0, $allTelephoneNumbers.Length - 1)
+
+            }
+
+            Set-Content -Path .\.local\TeamsPhoneNumberOverview_AllCsOnlineNumbers.txt -Value $allTelephoneNumbers
+
+            Write-Output "All telephone numbers set to local text file."
+
+            # Update total number count
+            Set-Content -Path .\.local\TeamsPhoneNumberOverview_TotalNumberCount.txt -Value ($allTelephoneNumbersCount)
+
+            Write-Output "Total number count in local text file updated."
+
+            Write-Output "using python to prettify numbers..."
+
+            & python ".\Functions\Format-TeamsPhoneNumbers.py"
+        
+        }
+
+        else {
+
+            Write-Output "Number count is the same as in previous job. Prettified numbers won't be updated."
+
+        }
+
+        # Import prettified numbers from local text file
+        $prettyNumbers = (Get-Content -Path .\.local\TeamsPhoneNumberOverview_PrettyNumbers.txt).Replace("'", "") | ConvertFrom-Json
+
+    }
+    $false {
+
+        # Check if total number count is not the same
+        if ($allTelephoneNumbersCount -ne $totalNumberCount) {
+
+            # Save all numbers as string to automation variable
+
+            $allTelephoneNumbers = $allTelephoneNumbers -join ";"
+
+            if ($allTelephoneNumbers[-1] -eq ";") {
+
+                $allTelephoneNumbers = $allTelephoneNumbers.Substring(0, $allTelephoneNumbers.Length - 1)
+
+            }
+
+            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_AllCsOnlineNumbers" -Value $allTelephoneNumbers
+
+            Write-Output "All telephone numbers set to automation variable."
+
+            # Update total number count
+            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_TotalNumberCount" -Value ($allTelephoneNumbersCount)
+
+            Write-Output "Total number count automation variable updated."
+
+            Write-Output "Starting python runbook"
+
+            Start-AzAutomationRunbook -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName $runbookName -MaxWaitSeconds 1000 -Wait
+
+            Write-Output "Python runbook finished."
+
+        }
+
+        else {
+
+            Write-Output "Number count is the same as in previous job. Prettified numbers won't be updated."
+
+        }
+
+        # Import prettified numbers from automation variable
+        $prettyNumbers = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_PrettyNumbers").Replace("'", "") | ConvertFrom-Json
+
+    }
+    Default {}
 }
 
 # Get all Teams users which have a phone number assigned
@@ -610,7 +610,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         if ($allCsOnlineNumbers.TelephoneNumber -contains $phoneNumber) {
 
-            $matchingCsOnlineNumber = ($allCsOnlineNumbers | Where-Object { $_.TelephoneNumber -eq ($teamsPhoneUser.LineUri).Replace("tel:", "") })
+            $matchingCsOnlineNumber = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq ($teamsPhoneUser.LineUri).Replace("tel:", "")})
 
             $operatorName = $matchingCsOnlineNumber.PstnPartnerName
 
@@ -633,7 +633,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         else {
 
-            $assignedDirectRoutingNumberCity = ($allCsOnlineNumbers | Where-Object { $_.TelephoneNumber -eq $phoneNumber }).City
+            $assignedDirectRoutingNumberCity = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq $phoneNumber}).City
 
             $directRoutingNumberIndex = $allDirectRoutingNumbers.PhoneNumber.IndexOf($phoneNumber)
             $operatorName = $allDirectRoutingNumbers.Operator[$directRoutingNumberIndex]
@@ -667,7 +667,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 $unassignedRoutingRules = Get-CsTeamsUnassignedNumberTreatment
 
 # Get all unassigned Calling Plan and Operator Connect phone numbers or all conference assigned numbers
-foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object { $_.PstnAssignmentStatus -eq "ConferenceAssigned" -or ($null -eq $_.AssignedPstnTargetId -and $_.NumberType -ne "DirectRouting") }) {
+foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$_.PstnAssignmentStatus -eq "ConferenceAssigned" -or ($null -eq $_.AssignedPstnTargetId -and $_.NumberType -ne "DirectRouting")}) {
 
     $csOnlineNumberDetails = New-Object -TypeName psobject
 
@@ -781,7 +781,7 @@ foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object { $_.PstnAssignme
 }
 
 # Get all unassigned Direct Routing Numbers
-$directRoutingNumbers = $allDirectRoutingNumbers | Where-Object { $allTeamsPhoneUserDetails."Title" -notcontains $_.PhoneNumber }
+$directRoutingNumbers = $allDirectRoutingNumbers | Where-Object {$allTeamsPhoneUserDetails."Title" -notcontains $_.PhoneNumber }
 
 foreach ($directRoutingNumber in $directRoutingNumbers) {
 
@@ -969,7 +969,7 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
             else {
 
-                if ($checkEntry.Status -eq "Assignment Error" -and $teamsPhoneNumber.Status -eq "Unassigned") {
+                if ($checkEntry.Status -eq "Assignment Error" -and $teamsPhoneNumber.Status -ne "Assigned") {
 
                     $teamsPhoneNumber = $checkEntryObject
 
