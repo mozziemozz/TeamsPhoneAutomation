@@ -1,4 +1,4 @@
-# Version: 2.3.3
+﻿# Version: 2.3.4
 
 # Set to true if script is executed locally
 $localTestMode = $true
@@ -92,10 +92,21 @@ switch ($localTestMode) {
         # Define Azure environment variables
         $automationAccountName = "mzz-automation-account-012"
         $resourceGroupName = "mzz-rmg-012"
-        $runbookName = "TestPython"
+        $runbookName = "Format-TeamsPhoneNumbers"
 
         # Connect to Azure environment
         . Connect-AzAccount -Identity -TenantId $TenantId
+
+        $queuedAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "TeamsPhoneNumberOverview" -Status "Queued"
+        $startingAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "TeamsPhoneNumberOverview" -Status "Starting"
+        $runningAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "TeamsPhoneNumberOverview" -Status "Running"
+
+        if ($queuedAutomationJobs -or $startingAutomationJobs -or $runningAutomationJobs.Count -gt 1) {
+
+            Write-Output "Job is already running. Job will be stopped."
+            exit
+
+        }
 
     }
     Default {}
@@ -179,7 +190,7 @@ if ($sharePointListItems) {
 
     # Assign reserved numbers
 
-    foreach ($reservedNumber in ($sharePointListItems | Where-Object {($_.Status -eq "Reserved" -or $_.Status -eq "Assignment Error") -and ($_.UserProfileLookupId -ne $null -or $_.User_x0020_Principal_x0020_Name -ne "Unassigned")})) {
+    foreach ($reservedNumber in ($sharePointListItems | Where-Object {($_.Status -match "Reserved" -or $_.Status -eq "Assignment Error") -and ($_.UserProfileLookupId -ne $null -or $_.User_x0020_Principal_x0020_Name -ne "Unassigned")})) {
 
         $userPrincipalName = ($userLookupIds | Where-Object {$_.UserSelection -eq $reservedNumber.UserProfileLookupId}).Username
 
@@ -923,7 +934,7 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
         else {
 
-            if ($checkEntry.Status -eq "Reserved" -and $teamsPhoneNumber.Status -eq "Unassigned") {
+            if ($checkEntry.Status -match "Reserved" -and ($teamsPhoneNumber.Status -eq "Unassigned" -or $teamsPhoneNumber.Status -eq "Unassigned (Routing Rule)")) {
 
                 if (!$checkEntry.PhoneNumber -or !$checkEntry.Operator) {
 
@@ -932,6 +943,8 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
                     $teamsPhoneNumber = $checkEntryObject
                     $teamsPhoneNumber.PhoneNumber = $newFormattedNumber
                     $teamsPhoneNumber.Operator = $newOperator
+
+                    Write-Output "Entry $($teamsPhoneNumber.Title) is reserved but has no pretty phone number or operator. Entry will be updated..."
 
                     $body = @"
 {
@@ -942,6 +955,36 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
                     $body += ($teamsPhoneNumber | ConvertTo-Json)
                     $body += "`n}"
         
+                    try {
+                        
+                        Invoke-RestMethod -Method Patch -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId" -ErrorAction Stop
+
+                    }
+                    catch {
+
+                        Write-Output "Error while trying to update list item. Trying to get new token..."
+
+                        . Connect-MsTeamsServicePrincipal -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+
+                        . Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+
+                    }
+
+                }
+
+                elseif ($checkEntry.Status -match "Reserved" -and $teamsPhoneNumber.Status -eq "Unassigned (Routing Rule)") {
+
+                    $teamsPhoneNumber.Status = "Reserved (Routing Rule)"
+
+                    $body = @"
+{
+"fields": 
+
+"@
+                            
+                    $body += ($teamsPhoneNumber | ConvertTo-Json)
+                    $body += "`n}"
+                            
                     try {
                         
                         Invoke-RestMethod -Method Patch -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId" -ErrorAction Stop
