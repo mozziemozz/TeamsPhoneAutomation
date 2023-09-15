@@ -1,42 +1,43 @@
-# Version: 2.3.1
+# Version: 2.3.2
 
 # Set to true if script is executed locally
 $localTestMode = $true
 
 function Get-AllSPOListItems {
     param (
-        [Parameter(Mandatory=$true)][string]$ListId
+        [Parameter(Mandatory = $true)][string]$ListId
     )
     
-        # Get existing list items
-        $sharePointListItems = @()
+    # Get existing list items
+    $sharePointListItems = @()
 
-        $querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($ListId)/items?expand=fields")
-        $sharePointListItems += $querriedItems.value.fields
+    $querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($ListId)/items?expand=fields")
+    $sharePointListItems += $querriedItems.value.fields
     
-        if ($querriedItems.'@odata.nextLink') {
+    if ($querriedItems.'@odata.nextLink') {
     
-            Write-Output "List contains more than $($querriedItems.value.Count) items. Querrying additional items..."
+        Write-Output "List contains more than $($querriedItems.value.Count) items. Querrying additional items..."
     
-            do {
+        do {
     
-                $querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri $querriedItems.'@odata.nextLink')
-                $sharePointListItems += $querriedItems.value.fields
+            $querriedItems = (Invoke-RestMethod -Method Get -Headers $Header -Uri $querriedItems.'@odata.nextLink')
+            $sharePointListItems += $querriedItems.value.fields
                 
-            } until (
-                !$querriedItems.'@odata.nextLink'
-            )
+        } until (
+            !$querriedItems.'@odata.nextLink'
+        )
     
-        }
+    }
     
-        else {
+    else {
     
-            Write-Output "All items were retrieved in the first request."
+        Write-Output "All items were retrieved in the first request."
     
-        }
+    }
     
-        Write-Output "Finished retrieving $($sharePointListItems.Count) items."
-    
+    Write-Output "Finished retrieving $($sharePointListItems.Count) items."
+
+
 }
 
 switch ($localTestMode) {
@@ -76,14 +77,14 @@ switch ($localTestMode) {
         . .\Get-CsOnlineNumbers.ps1
 
         # Import variables        
-        $MsListName =  Get-AutomationVariable -Name "TeamsPhoneNumberOverview_MsListName"
+        $MsListName = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_MsListName"
         $TenantId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_TenantId"
         $AppId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_AppId"
         $AppSecret = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_AppSecret"
         $groupId = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_GroupId"
 
         # Import Direct Routing numbers
-        $allDirectRoutingNumbers = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_DirectRoutingNumbers").Replace("'","") | ConvertFrom-Json
+        $allDirectRoutingNumbers = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_DirectRoutingNumbers").Replace("'", "") | ConvertFrom-Json
 
         # Get previous total number count
         $totalNumberCount = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_TotalNumberCount"
@@ -112,19 +113,19 @@ $existingSharePointLists = (Invoke-RestMethod -Method Get -Headers $Header -Uri 
 # $userInformationListId = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?`$filter=displayName eq '$localizedUserInformationList'").value.id
 
 # From: https://stackoverflow.com/questions/61143146/how-to-get-user-from-user-field-lookupid
-$userInformationListId = ((Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?select=id,name,system").value | Where-Object {$_.name -eq "users"}).id
+$userInformationListId = ((Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?select=id,name,system").value | Where-Object { $_.name -eq "users" }).id
 
 # Retrieve all list items
 . Get-AllSPOListItems -ListId $userInformationListId
 $userInformationList = $sharePointListItems
 
-$userLookupIds = $userInformationList | Select-Object Username,UserSelection
+$userLookupIds = $userInformationList | Select-Object Username, UserSelection
 
 if ($existingSharePointLists.name -contains $MsListName) {
 
     Write-Output "A list with the name $MsListName already exists in site $($sharePointSite.name). No new list will be created."
 
-    $sharePointListId = ($existingSharePointLists | Where-Object {$_.Name -eq $MsListName}).id
+    $sharePointListId = ($existingSharePointLists | Where-Object { $_.Name -eq $MsListName }).id
 
 }
 
@@ -137,7 +138,7 @@ else {
     
             # Local Environment
     
-            $createListJson = (Get-Content -Path .\Resources\CreateList-V2.json).Replace("Name Placeholder",$MsListName)
+            $createListJson = (Get-Content -Path .\Resources\CreateList-V2.json).Replace("Name Placeholder", $MsListName)
             
         }
     
@@ -145,7 +146,7 @@ else {
     
             # Azure Automation
     
-            $createListJson = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_CreateList").Replace("Name Placeholder",$MsListName).Replace("'","")
+            $createListJson = (Get-AutomationVariable -Name "TeamsPhoneNumberOverview_CreateList").Replace("Name Placeholder", $MsListName).Replace("'", "")
 
         }
         Default {}
@@ -163,22 +164,34 @@ $allDirectRoutingNumbers | ForEach-Object { $_.PhoneNumber = "+$($_.PhoneNumber)
 # Get CsOnline Numbers
 $allCsOnlineNumbers = . Get-CsOnlineNumbers
 
-# All phone numbers, CP, OC and DR (DR numbers are read from the LineURI attribute of Teams users)
-$allTelephoneNumbers = ($allCsOnlineNumbers.TelephoneNumber + ($allDirectRoutingNumbers.PhoneNumber | Where-Object { $_ -notin $allCsOnlineNumbers.TelephoneNumber }))
+# All phone numbers, CP, OC and DR
+$allTelephoneNumbers = $allCsOnlineNumbers.TelephoneNumber
+$allTelephoneNumbers += $allDirectRoutingNumbers.PhoneNumber
+$allTelephoneNumbers = $allTelephoneNumbers | Sort-Object -Unique
+$allTelephoneNumbersCount = $allTelephoneNumbers.Count
 
 switch ($localTestMode) {
     $true {
 
         # Check if total number count is not the same
-        if ($allTelephoneNumbers.Count -ne $totalNumberCount) {
+        if ($allTelephoneNumbersCount -ne $totalNumberCount) {
 
             # Save all numbers as string to local text file
-            Set-Content -Path .\.local\TeamsPhoneNumberOverview_AllCsOnlineNumbers.txt -Value ($allTelephoneNumbers -join ";")
+
+            $allTelephoneNumbers = $allTelephoneNumbers -join ";"
+
+            if ($allTelephoneNumbers[-1] -eq ";") {
+
+                $allTelephoneNumbers = $allTelephoneNumbers.Substring(0, $allTelephoneNumbers.Length - 1)
+
+            }
+
+            Set-Content -Path .\.local\TeamsPhoneNumberOverview_AllCsOnlineNumbers.txt -Value $allTelephoneNumbers
 
             Write-Output "All telephone numbers set to local text file."
 
             # Update total number count
-            Set-Content -Path .\.local\TeamsPhoneNumberOverview_TotalNumberCount.txt -Value ($allTelephoneNumbers.Count)
+            Set-Content -Path .\.local\TeamsPhoneNumberOverview_TotalNumberCount.txt -Value ($allTelephoneNumbersCount)
 
             Write-Output "Total number count in local text file updated."
 
@@ -201,15 +214,24 @@ switch ($localTestMode) {
     $false {
 
         # Check if total number count is not the same
-        if ($allTelephoneNumbers.Count -ne $totalNumberCount) {
+        if ($allTelephoneNumbersCount -ne $totalNumberCount) {
 
             # Save all numbers as string to automation variable
-            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_AllCsOnlineNumbers" -Value ($allTelephoneNumbers -join ";")
+
+            $allTelephoneNumbers = $allTelephoneNumbers -join ";"
+
+            if ($allTelephoneNumbers[-1] -eq ";") {
+
+                $allTelephoneNumbers = $allTelephoneNumbers.Substring(0, $allTelephoneNumbers.Length - 1)
+
+            }
+
+            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_AllCsOnlineNumbers" -Value $allTelephoneNumbers
 
             Write-Output "All telephone numbers set to automation variable."
 
             # Update total number count
-            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_TotalNumberCount" -Value ($allTelephoneNumbers.Count)
+            Set-AutomationVariable -Name "TeamsPhoneNumberOverview_TotalNumberCount" -Value ($allTelephoneNumbersCount)
 
             Write-Output "Total number count automation variable updated."
 
@@ -241,63 +263,103 @@ if ($sharePointListItems) {
 
     # Unassign numbers
 
-    foreach ($reservedNumber in ($sharePointListItems | Where-Object {$_.Status -eq "Remove Pending" -and $_.User_x0020_Principal_x0020_Name -ne "Unassigned"})) {
+    foreach ($reservedNumber in ($sharePointListItems | Where-Object { $_.Status -eq "Remove Pending" -and $_.User_x0020_Principal_x0020_Name -ne "Unassigned" })) {
 
         Write-Output "Trying to remove the number $($reservedNumber.Title) from user $($reservedNumber.User_x0020_Principal_x0020_Name)..."
 
         Remove-CsPhoneNumberAssignment -Identity $reservedNumber.User_x0020_Principal_x0020_Name -RemoveAll
 
+        Write-Output "Sleeping for 30s..."
+
+        Start-Sleep 30
+
     }
 
     # Assign reserved numbers
 
-    foreach ($reservedNumber in ($sharePointListItems | Where-Object {$_.Status -eq "Reserved" -and $_.UserProfileLookupId -ne $null})) {
+    foreach ($reservedNumber in ($sharePointListItems | Where-Object { ($_.Status -eq "Reserved" -or $_.Status -eq "Assignment Error") -and ($_.UserProfileLookupId -ne $null -or $_.User_x0020_Principal_x0020_Name -ne "Unassigned")})) {
 
-        $userPrincipalName = ($userLookupIds | Where-Object {$_.UserSelection -eq $reservedNumber.UserProfileLookupId}).Username
+        $userPrincipalName = ($userLookupIds | Where-Object { $_.UserSelection -eq $reservedNumber.UserProfileLookupId }).Username
 
-        $checkCsOnlineUser = (Get-CsOnlineUser -Identity $userPrincipalName)
+        if (!$userPrincipalName) {
 
-        if ($checkCsOnlineUser.LineURI) {
+            Write-Output "User with lookup id $($reservedNumber.UserProfileLookupId) is not available in the lookup table yet. Trying to get user principal name from list."
 
-            $checkCsOnlineUserLineURI = $checkCsOnlineUser.LineURI.Replace("tel:","")
+            if ($reservedNumber.User_x0020_Principal_x0020_Name -ne "Unassigned" -and $null -ne $reservedNumber.User_x0020_Principal_x0020_Name) {
 
-            if ($checkCsOnlineUserLineURI -ne $reservedNumber.Title) {
+                $userPrincipalName = $reservedNumber.User_x0020_Principal_x0020_Name
 
-                Write-Output "User $userPrincipalName already has $checkCsOnlineUserLineURI assigned. Number will be removed and replaced with $($reservedNumber.Title)"
-    
-                Remove-CsPhoneNumberAssignment -Identity $userPrincipalName -RemoveAll
-    
-            }
-    
-            if ($checkCsOnlineUserLineURI -eq $reservedNumber.Title) {
-    
-                Write-Output "Reserved number $($reservedNumber.Title) is already assigned to $userPrincipalName."
-
-                $assignReservedNumber = $false
-    
             }
 
             else {
 
-                $assignReservedNumber = $true
+                $userPrincipalName = $null
+
+            }
+
+        }
+
+        if ($userPrincipalName) {
+
+            $checkCsOnlineUser = (Get-CsOnlineUser -Identity $userPrincipalName)
+
+            if ($checkCsOnlineUser) {
+
+                if ($checkCsOnlineUser.LineURI) {
+
+                    $checkCsOnlineUserLineURI = $checkCsOnlineUser.LineURI.Replace("tel:", "")
+
+                    if ($checkCsOnlineUserLineURI -ne $reservedNumber.Title) {
+
+                        Write-Output "User $userPrincipalName already has $checkCsOnlineUserLineURI assigned. Number will be removed and replaced with $($reservedNumber.Title)"
     
-            }    
+                        Remove-CsPhoneNumberAssignment -Identity $userPrincipalName -RemoveAll
+    
+                    }
+    
+                    if ($checkCsOnlineUserLineURI -eq $reservedNumber.Title) {
+    
+                        Write-Output "Reserved number $($reservedNumber.Title) is already assigned to $userPrincipalName."
+
+                        $assignReservedNumber = $false
+    
+                    }
+
+                    else {
+
+                        $assignReservedNumber = $true
+    
+                    }    
+
+                }
+
+                else {
+
+                    $assignReservedNumber = $true
+
+                }
+
+            }
+
+            else {
+
+                Write-Output "User $userPrincipalName is not available in the tenant. Number $($reservedNumber.Title) will not be assigned."
+
+                ($sharePointListItems | Where-Object { $_.Title -eq $reservedNumber.Title }).Status = "Assignment Error"
+
+                $assignReservedNumber = $false
+
+            }
 
         }
 
         else {
 
-            if ($userPrincipalName) {
+            Write-Output "User $userPrincipalName is not available in the tenant. Number $($reservedNumber.Title) will not be assigned."
 
-                $assignReservedNumber = $true
+            ($sharePointListItems | Where-Object { $_.Title -eq $reservedNumber.Title }).Status = "Assignment Error"
 
-            }
-
-            else {
-
-                Write-Output "User with lookup id $($reservedNumber.UserProfileLookupId) is not available in the lookup table yet. The number will be assigned in the next job."
-
-            }
+            $assignReservedNumber = $false
 
         }
 
@@ -396,7 +458,7 @@ if ($sharePointListItems) {
             if ($usageLocationCheck -eq $false) {
 
                 # Usage location does not match phone number
-                $patchBody = @{UsageLocation=$($reservedNumber.Country)} | ConvertTo-Json
+                $patchBody = @{UsageLocation = $($reservedNumber.Country) } | ConvertTo-Json
 
                 Invoke-RestMethod -Method Patch -Headers $Header -Uri "https://graph.microsoft.com/v1.0/users/$($checkCsOnlineUser.Identity)" -ContentType "application/json" -Body $patchBody
                 
@@ -463,7 +525,7 @@ if ($sharePointListItems) {
 
                 }
 
-                ($sharePointListItems | Where-Object {$_.Title -eq $reservedNumber.Title}).Status = "Assignment Error"
+                ($sharePointListItems | Where-Object { $_.Title -eq $reservedNumber.Title }).Status = "Assignment Error"
 
             }
 
@@ -500,7 +562,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         $teamsPhoneUserDetails = New-Object -TypeName psobject
 
-        $teamsPhoneUserLineUriPrettyIndex = $prettyNumbers.original.IndexOf($teamsPhoneUser.LineUri.Replace("tel:",""))
+        $teamsPhoneUserLineUriPrettyIndex = $prettyNumbers.original.IndexOf($teamsPhoneUser.LineUri.Replace("tel:", ""))
 
         if ($teamsPhoneUserLineUriPrettyIndex -eq -1) {
 
@@ -526,14 +588,14 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         }
 
-        $phoneNumber = $teamsPhoneUser.LineUri.Replace("tel:","")
+        $phoneNumber = $teamsPhoneUser.LineUri.Replace("tel:", "")
 
         if ($teamsPhoneUser.LineUri -match ";") {
 
             $lineUri = $teamsPhoneUser.LineUri.Split(";")[0]
             $extension = $teamsPhoneUser.LineUri.Split(";")[-1]
 
-            $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $lineUri.Replace("tel:","")
+            $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $lineUri.Replace("tel:", "")
             $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "PhoneNumber" -Value $teamsPhoneUserLineUriPretty
             $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value $extension
 
@@ -541,14 +603,14 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         else {
 
-            $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $teamsPhoneUser.LineUri.Replace("tel:","")
+            $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Title" -Value $teamsPhoneUser.LineUri.Replace("tel:", "")
             $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "PhoneNumber" -Value $teamsPhoneUserLineUriPretty
             $teamsPhoneUserDetails | Add-Member -MemberType NoteProperty -Name "Phone_x0020_Extension" -Value "N/A"
         }
 
         if ($allCsOnlineNumbers.TelephoneNumber -contains $phoneNumber) {
 
-            $matchingCsOnlineNumber = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq ($teamsPhoneUser.LineUri).Replace("tel:","")})
+            $matchingCsOnlineNumber = ($allCsOnlineNumbers | Where-Object { $_.TelephoneNumber -eq ($teamsPhoneUser.LineUri).Replace("tel:", "") })
 
             $operatorName = $matchingCsOnlineNumber.PstnPartnerName
 
@@ -571,7 +633,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         else {
 
-            $assignedDirectRoutingNumberCity = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq $phoneNumber}).City
+            $assignedDirectRoutingNumberCity = ($allCsOnlineNumbers | Where-Object { $_.TelephoneNumber -eq $phoneNumber }).City
 
             $directRoutingNumberIndex = $allDirectRoutingNumbers.PhoneNumber.IndexOf($phoneNumber)
             $operatorName = $allDirectRoutingNumbers.Operator[$directRoutingNumberIndex]
@@ -605,7 +667,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 $unassignedRoutingRules = Get-CsTeamsUnassignedNumberTreatment
 
 # Get all unassigned Calling Plan and Operator Connect phone numbers or all conference assigned numbers
-foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$_.PstnAssignmentStatus -eq "ConferenceAssigned" -or ($null -eq $_.AssignedPstnTargetId -and $_.NumberType -ne "DirectRouting")}) {
+foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object { $_.PstnAssignmentStatus -eq "ConferenceAssigned" -or ($null -eq $_.AssignedPstnTargetId -and $_.NumberType -ne "DirectRouting") }) {
 
     $csOnlineNumberDetails = New-Object -TypeName psobject
 
@@ -719,7 +781,7 @@ foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$_.PstnAssignmen
 }
 
 # Get all unassigned Direct Routing Numbers
-$directRoutingNumbers = $allDirectRoutingNumbers | Where-Object {$allTeamsPhoneUserDetails."Title" -notcontains $_.PhoneNumber }
+$directRoutingNumbers = $allDirectRoutingNumbers | Where-Object { $allTeamsPhoneUserDetails."Title" -notcontains $_.PhoneNumber }
 
 foreach ($directRoutingNumber in $directRoutingNumbers) {
 
@@ -794,7 +856,20 @@ if ($sharePointListItems) {
 
             Write-Output "Entry $($spoPhoneNumber.Title) is no longer available. It will be removed from the list..."
 
-            Invoke-RestMethod -Method Delete -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$($spoPhoneNumber.id)"
+            try {
+                
+                Invoke-RestMethod -Method Delete -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$($spoPhoneNumber.id)" -ErrorAction Stop
+
+            }
+            catch {
+
+                Write-Output "Error while trying to update list item. Trying to get new token..."
+
+                . Connect-MsTeamsServicePrincipal -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+
+                . Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+
+            }
 
         }
 
@@ -850,11 +925,13 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
             if ($checkEntry.Status -eq "Reserved" -and $teamsPhoneNumber.Status -eq "Unassigned") {
 
-                if (!$checkEntry.PhoneNumber) {
+                if (!$checkEntry.PhoneNumber -or !$checkEntry.Operator) {
 
                     $newFormattedNumber = $teamsPhoneNumber.PhoneNumber
+                    $newOperator = $teamsPhoneNumber.Operator
                     $teamsPhoneNumber = $checkEntryObject
                     $teamsPhoneNumber.PhoneNumber = $newFormattedNumber
+                    $teamsPhoneNumber.Operator = $newOperator
 
                     $body = @"
 {
@@ -865,7 +942,20 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
                     $body += ($teamsPhoneNumber | ConvertTo-Json)
                     $body += "`n}"
         
-                    Invoke-RestMethod -Method Patch -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId"
+                    try {
+                        
+                        Invoke-RestMethod -Method Patch -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId" -ErrorAction Stop
+
+                    }
+                    catch {
+
+                        Write-Output "Error while trying to update list item. Trying to get new token..."
+
+                        . Connect-MsTeamsServicePrincipal -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+
+                        . Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+
+                    }
 
                 }
 
@@ -879,25 +969,23 @@ foreach ($teamsPhoneNumber in $allTeamsPhoneUserDetails) {
 
             else {
 
-                if ($checkEntry.Status -eq "Assignment Error") {
+                if ($checkEntry.Status -eq "Assignment Error" -and $teamsPhoneNumber.Status -eq "Unassigned") {
 
                     $teamsPhoneNumber = $checkEntryObject
 
                     Write-Output "Entry $($teamsPhoneNumber.Title) is NOT up to date because it has assignment errors. Entry won't be updated..."
 
-
                 }
 
                 else {
 
-                    Write-Output "Entry $($teamsPhoneNumber.Title) is NOT up to date and will be updated..."
+                    Write-Output "Entry $($teamsPhoneNumber.Title) is NOT up to date. Entry will be updated..."
 
                 }
 
-
                 # patch
 
-$body = @"
+                $body = @"
 {
 "fields": 
 
@@ -906,7 +994,20 @@ $body = @"
                 $body += ($teamsPhoneNumber | ConvertTo-Json)
                 $body += "`n}"
         
-                Invoke-RestMethod -Method Patch -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId"
+                try {
+                    
+                    Invoke-RestMethod -Method Patch -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items/$itemId" -ErrorAction Stop
+
+                }
+                catch {
+
+                    Write-Output "Error while trying to update list item. Trying to get new token..."
+
+                    . Connect-MsTeamsServicePrincipal -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+
+                    . Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+
+                }
             
             }
 
@@ -932,7 +1033,20 @@ $body = @"
         # Only create list item if title is not empty
         if ($teamsPhoneNumber.Title) {
 
-            Invoke-RestMethod -Method Post -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items"
+            try {
+
+                Invoke-RestMethod -Method Post -Headers $header -ContentType "application/json; charset=UTF-8" -Body $body -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists/$($sharePointListId)/items" -ErrorAction Stop
+            
+            }
+            catch {
+
+                Write-Output "Error while trying to update list item. Trying to get new token..."
+
+                . Connect-MsTeamsServicePrincipal -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+
+                . Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
+
+            }
 
         }
         
