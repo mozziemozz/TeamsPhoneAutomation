@@ -1,4 +1,4 @@
-﻿# Version: 2.3.4
+# Version: 2.3.4
 
 # Set to true if script is executed locally
 $localTestMode = $true
