@@ -116,6 +116,23 @@ switch ($localTestMode) {
 
 . Connect-MgGraphHTTP -TenantId $TenantId -AppId $AppId -AppSecret $AppSecret
 
+$checkGetCsTenant = Get-CsTenant -ErrorAction SilentlyContinue
+$checkGetCsOnlineUser = Get-CsOnlineUser -ResultSize 1 -ErrorAction SilentlyContinue
+$checkGetCsPhoneNumberAssignment = Get-CsPhoneNumberAssignment -Top 1 -ErrorAction SilentlyContinue
+
+if ($checkGetCsTenant -and $checkGetCsOnlineUser -and $checkGetCsOnlineUser) {
+
+    Write-Output "All Microsoft Teams PowerShell connection checks were successful."
+
+}
+
+else {
+
+    Write-Output "Not all Microsoft Teams PowerShell connection checks were successful. Exiting runbook."
+    exit
+
+}
+
 # Get existing SharePoint lists for group id
 $sharePointSite = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/groups/$groupId/sites/root")
 
