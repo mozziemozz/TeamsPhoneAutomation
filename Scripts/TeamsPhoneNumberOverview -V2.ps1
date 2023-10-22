@@ -1,4 +1,4 @@
-# Version: 2.3.4
+﻿# Version: 2.3.5
 
 # Set to true if script is executed locally
 $localTestMode = $true
@@ -504,7 +504,7 @@ switch ($localTestMode) {
 
             Write-Output "using python to prettify numbers..."
 
-            & python ".\Functions\Format-TeamsPhoneNumbers.py"
+            & python ".\Functions\Format-TeamsPhoneNumbers-Local.py"
         
         }
 
