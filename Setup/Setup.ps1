@@ -10,6 +10,7 @@ $banner = @"
 Write-Host $banner -ForegroundColor DarkCyan
 
 Write-Host "Press enter to start the deployment." -ForegroundColor Cyan
+
 Read-Host
 
 if (!(Test-Path -Path .\.local)) {
@@ -77,7 +78,7 @@ foreach ($module in $requiredModules) {
                     } 
                     else {
                         Start-Process powershell.exe -Verb RunAs -ArgumentList ('-noprofile -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
-                }
+                    }
                 
                     exit
                 }
@@ -120,7 +121,7 @@ if ($missingModules) {
         } 
         else {
             Start-Process powershell.exe -Verb RunAs -ArgumentList ('-noprofile -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
-    }
+        }
     
         exit
     }
