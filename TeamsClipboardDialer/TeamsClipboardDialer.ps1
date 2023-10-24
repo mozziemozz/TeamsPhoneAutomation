@@ -9,7 +9,9 @@
 
     .NOTES
     Author:             Martin Heusser | M365 Apps & Services MVP
-    Version:            1.0.0
+    Version:            1.0.1
+    Changes:            2023-10-24
+                        Add hint if clipboard is empty
     Sponsor Project:    https://github.com/sponsors/mozziemozz
     Website:            https://heusser.pro
 
@@ -45,6 +47,13 @@ if ($phoneNumber -notmatch '^(?:\+\d+|\d+)') {
     }
 
     else {
+
+        # Check if $phoneNumber is null or whitespace
+        if ([string]::IsNullOrWhiteSpace($phoneNumber)) {
+
+            $phoneNumber = "Clipboard is empty."
+
+        }
 
         $Message = "Clipboard doesn't contain a phone number.`nCopy a valid phone number and try again.`n`nClipboard content:`n`n$phoneNumber"
         $Title = "Teams Clipboard Dialer | https://heusser.pro"
