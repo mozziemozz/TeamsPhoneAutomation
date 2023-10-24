@@ -9,10 +9,11 @@
 
     .NOTES
     Author:             Martin Heusser | M365 Apps & Services MVP
-    Version:            1.0.2
+    Version:            1.0.3
     Changes:            2023-10-24
                         Add hint if clipboard is empty
                         Improve regex matching, add code to change 00 to +
+                        Fix 00 to + replacement, add comments
     Sponsor Project:    https://github.com/sponsors/mozziemozz
     Website:            https://heusser.pro
 
@@ -32,19 +33,19 @@ $phoneNumber = Get-Clipboard | Out-String
 
 $originalClipboardValue = $phoneNumber.Trim()
 
+# Remove any non-digit or + characters
 $phoneNumber = $phoneNumber -replace '[^\d\+]'
 
-if ($phoneNumber.StartsWith("00")) {
-
-    $phoneNumber = $phoneNumber.Replace($phoneNumber.Substring(0, 2), "+")
-
-}
+# Replace leading 00 with +
+$phoneNumber = $phoneNumber -replace '^00', '+'
 
 $phoneNumber = $phoneNumber.Trim()
 
+# Remove any invalid zeros
 # Credits: https://ucken.blogspot.com/2016/03/trunk-prefixes-in-skype4b.html
 $phoneNumber = $phoneNumber -replace ('^\+(1|7|2[07]|3[0-46]|39\d|4[013-9]|5[1-8]|6[0-6]|8[1246]|9[0-58]|2[1235689]\d|24[013-9]|242\d|3[578]\d|42|5[09]\d|6[789]\d|8[035789]\d|9[679]\d)(?:0)?(\d{6,14})?$', '+$1$2')
 
+# Check if there is a phone number in the clipboard
 if ($phoneNumber -notmatch '^(?:\+\d+|\d+)') {
 
     if ($originalClipboardValue -eq "SetUpTeamsClipboardDialer") {
@@ -66,7 +67,8 @@ if ($phoneNumber -notmatch '^(?:\+\d+|\d+)') {
 
         else {
 
-            $clipboardContent = Get-Clipboard | Out-String
+            # Get the clipboard content
+            $clipboardContent = $originalClipboardValue
 
         }
 
@@ -75,6 +77,7 @@ if ($phoneNumber -notmatch '^(?:\+\d+|\d+)') {
 
     }
 
+    # Show hint if there is no phone number in clipboard
     [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
     [Windows.Forms.MessageBox]::Show($Message, $Title, [Windows.Forms.MessageBoxButtons]::OK, [Windows.Forms.MessageBoxIcon]::Information)
 
@@ -82,8 +85,10 @@ if ($phoneNumber -notmatch '^(?:\+\d+|\d+)') {
 
 else {
 
+    # Replace + with %2B (url encoding)
     $phoneNumber = $phoneNumber.Replace("+", "%2B")
 
+    # Launch Teams to dial the number
     Start-Process ms-teams "https://teams.microsoft.com/l/call/0/0?users=4:$phoneNumber"
 
 }
