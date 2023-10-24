@@ -9,9 +9,10 @@
 
     .NOTES
     Author:             Martin Heusser | M365 Apps & Services MVP
-    Version:            1.0.1
+    Version:            1.0.2
     Changes:            2023-10-24
                         Add hint if clipboard is empty
+                        Improve regex matching, add code to change 00 to +
     Sponsor Project:    https://github.com/sponsors/mozziemozz
     Website:            https://heusser.pro
 
@@ -29,16 +30,24 @@
 
 $phoneNumber = Get-Clipboard | Out-String
 
-$phoneNumber = $phoneNumber.Trim()
+$originalClipboardValue = $phoneNumber.Trim()
 
-$phoneNumber = $phoneNumber.Replace(" ", "").Replace("(", "").Replace(")", "").Replace("-", "").Replace(".", "")
+$phoneNumber = $phoneNumber -replace '[^\d\+]'
+
+if ($phoneNumber.StartsWith("00")) {
+
+    $phoneNumber = $phoneNumber.Replace($phoneNumber.Substring(0, 2), "+")
+
+}
+
+$phoneNumber = $phoneNumber.Trim()
 
 # Credits: https://ucken.blogspot.com/2016/03/trunk-prefixes-in-skype4b.html
 $phoneNumber = $phoneNumber -replace ('^\+(1|7|2[07]|3[0-46]|39\d|4[013-9]|5[1-8]|6[0-6]|8[1246]|9[0-58]|2[1235689]\d|24[013-9]|242\d|3[578]\d|42|5[09]\d|6[789]\d|8[035789]\d|9[679]\d)(?:0)?(\d{6,14})?$', '+$1$2')
 
 if ($phoneNumber -notmatch '^(?:\+\d+|\d+)') {
 
-    if ($phoneNumber -eq "SetUpTeamsClipboardDialer") {
+    if ($originalClipboardValue -eq "SetUpTeamsClipboardDialer") {
 
         $Message = "Right-click on the blue phone icon in the taskbar`nand select 'Pin to taskbar' to pin the app.`n`nTo use the app, copy any phone number`nand click the blue phone icon again."
 
@@ -49,13 +58,19 @@ if ($phoneNumber -notmatch '^(?:\+\d+|\d+)') {
     else {
 
         # Check if $phoneNumber is null or whitespace
-        if ([string]::IsNullOrWhiteSpace($phoneNumber)) {
+        if ([string]::IsNullOrWhiteSpace($originalClipboardValue)) {
 
-            $phoneNumber = "Clipboard is empty."
+            $clipboardContent = "Clipboard is empty."
 
         }
 
-        $Message = "Clipboard doesn't contain a phone number.`nCopy a valid phone number and try again.`n`nClipboard content:`n`n$phoneNumber"
+        else {
+
+            $clipboardContent = Get-Clipboard | Out-String
+
+        }
+
+        $Message = "Clipboard doesn't contain a phone number.`nCopy a valid phone number and try again.`n`nClipboard content:`n`n$clipboardContent"
         $Title = "Teams Clipboard Dialer | https://heusser.pro"
 
     }
