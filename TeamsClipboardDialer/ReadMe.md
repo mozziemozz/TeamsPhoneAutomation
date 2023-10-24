@@ -39,7 +39,9 @@ If you have copied a valid phone number, Teams will open and you'll be asked if 
 
 If you didn't copy a phone number and have something else in the clipboard instead, you'll see an error message and your actual clipboard content.
 
-![no phone number in clipboard](Screenshots/no-phone-number-in-clipboard-2023-40-23-23-40-27.png)
+![ballon tip text](Screenshots/balloon-tip-text-2023-32-24-23-32-11.png)
+
+![ballon tip empty clipboad](Screenshots/balloon-tip-empty-clipboard-2023-31-24-23-31-44.png)
 
 # Buy me a coffee
 
