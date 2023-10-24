@@ -9,11 +9,12 @@
 
     .NOTES
     Author:             Martin Heusser | M365 Apps & Services MVP
-    Version:            1.0.3
+    Version:            1.0.4
     Changes:            2023-10-24
                         Add hint if clipboard is empty
                         Improve regex matching, add code to change 00 to +
                         Fix 00 to + replacement, add comments
+                        Switch to BalloonTip instead of MessageBox for invalid clipboard content
     Sponsor Project:    https://github.com/sponsors/mozziemozz
     Website:            https://heusser.pro
 
@@ -33,13 +34,14 @@ $phoneNumber = Get-Clipboard | Out-String
 
 $originalClipboardValue = $phoneNumber.Trim()
 
+# Trim eventual whitespaces
+$phoneNumber = $phoneNumber.Trim()
+
 # Remove any non-digit or + characters
 $phoneNumber = $phoneNumber -replace '[^\d\+]'
 
 # Replace leading 00 with +
 $phoneNumber = $phoneNumber -replace '^00', '+'
-
-$phoneNumber = $phoneNumber.Trim()
 
 # Remove any invalid zeros
 # Credits: https://ucken.blogspot.com/2016/03/trunk-prefixes-in-skype4b.html
@@ -50,16 +52,19 @@ if ($phoneNumber -notmatch '^(?:\+\d+|\d+)') {
 
     if ($originalClipboardValue -eq "SetUpTeamsClipboardDialer") {
 
-        $Message = "Right-click on the blue phone icon in the taskbar`nand select 'Pin to taskbar' to pin the app.`n`nTo use the app, copy any phone number`nand click the blue phone icon again."
-
+        $Message = "Right-click on the blue phone icon in the taskbar`nand select 'Pin to taskbar' to pin the app.`n`nClick OK when you're done."
         $Title = "Teams Clipboard Dialer | SETUP"
+
+        # Show hint if there is no phone number in clipboard
+        [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+        [Windows.Forms.MessageBox]::Show($Message, $Title, [Windows.Forms.MessageBoxButtons]::OK, [Windows.Forms.MessageBoxIcon]::Information)
         
     }
 
     else {
 
         # Check if $phoneNumber is null or whitespace
-        if ([string]::IsNullOrWhiteSpace($originalClipboardValue)) {
+        if (!$originalClipboardValue) {
 
             $clipboardContent = "Clipboard is empty."
 
@@ -72,15 +77,27 @@ if ($phoneNumber -notmatch '^(?:\+\d+|\d+)') {
 
         }
 
-        $Message = "Clipboard doesn't contain a phone number.`nCopy a valid phone number and try again.`n`nClipboard content:`n`n$clipboardContent"
-        $Title = "Teams Clipboard Dialer | https://heusser.pro"
+        # $Message = "Clipboard doesn't contain a phone number. Copy a phone number and try again. Clipboard content: $clipboardContent"
+        $Message = @"
+Clipboard doesn't contain a phone number. 
+Copy a phone number and try again. 
+
+Clipboard content: $clipboardContent
+
+"@
+        $Title = "Teams Clipboard Dialer"
+
+        [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+        $balloonTip = New-Object System.Windows.Forms.NotifyIcon
+        $balloonTip.Icon = [System.Drawing.SystemIcons]::Information
+        $balloonTip.BalloonTipIcon = "Info"
+        $balloonTip.BalloonTipTitle = $Title
+        $balloonTip.BalloonTipText = $Message 
+        $balloonTip.Visible = $True
+        $balloonTip.ShowBalloonTip(30000)
 
     }
-
-    # Show hint if there is no phone number in clipboard
-    [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
-    [Windows.Forms.MessageBox]::Show($Message, $Title, [Windows.Forms.MessageBoxButtons]::OK, [Windows.Forms.MessageBoxIcon]::Information)
-
+    
 }
 
 else {

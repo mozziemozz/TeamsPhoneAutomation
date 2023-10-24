@@ -7,7 +7,7 @@ Navigate to the folder where you've saved the downloaded files. The folder must 
 - PhoneIcon1.ico
 - PhoneIcon2.ico
 
-## Run the install script (CreateShortCut.ps1)
+## Run the install script (CreateShortcut.ps1)
 
 Run the script with PowerShell to install the files.
 
