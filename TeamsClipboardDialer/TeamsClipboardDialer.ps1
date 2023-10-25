@@ -18,6 +18,7 @@
                         
                         2023-10-25
                         Improve regular expressions, improve message hints
+                        Add support for 1-4 digit extensions
     Sponsor Project:    https://github.com/sponsors/mozziemozz
     Website:            https://heusser.pro
 
@@ -69,7 +70,7 @@ if (!$phoneNumber.StartsWith("0") -and !$phoneNumber.StartsWith("+") -and $phone
 $phoneNumber = $phoneNumber -replace ('^\+(1|7|2[07]|3[0-46]|39\d|4[013-9]|5[1-8]|6[0-6]|8[1246]|9[0-58]|2[1235689]\d|24[013-9]|242\d|3[578]\d|42|5[09]\d|6[789]\d|8[035789]\d|9[679]\d)(?:0)?(\d{6,14})?$', '+$1$2')
 
 # Check if there is a phone number in the clipboard
-if ($phoneNumber -notmatch '^(\d{2,}|(\+\d{5,}))$' -or $nonDigitCount -ge $digitCount) {
+if ($phoneNumber -notmatch '^(\d{1,}|(\+\d{5,}))$' -or $phoneNumber.Length -gt 16 -or $nonDigitCount -ge $digitCount) {
 
     if ($originalClipboardValue -eq "SetUpTeamsClipboardDialer") {
 
