@@ -45,7 +45,7 @@ It's generally advised to only copy a number and no other text. However, you don
 
 If your clipboard contains multiple lines, the script will extract the phone number. This only works if there are more digit chaacters than non-digit characters present.
 
-Copying the following content will work:
+Copying the following content will work.
 ```text
 Martin:
 +41441234567
@@ -73,7 +73,7 @@ Copying this text won't work. During the normalization, the numbers will be comb
 #### Extension and emergency numbers
 
 Copied numbers can be as short as 1 digit. This is because you can also dial internal extensions or emergency numbers.
-The following numbers will all be callable:
+The following numbers will all be callable.
 
 ```text
 1
