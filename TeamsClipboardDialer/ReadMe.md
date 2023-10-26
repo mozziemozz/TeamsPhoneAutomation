@@ -73,7 +73,7 @@ Copying this text won't work. During the normalization, the numbers will be comb
 #### Extension and emergency numbers
 
 Copied numbers can be as short as 1 digit. This is because you can also dial internal extensions or emergency numbers.
-The following numbers will all be callable.
+The following short numbers will all be callable.
 
 ```text
 1
@@ -107,7 +107,9 @@ If you didn't copy a phone number and have something else in the clipboard inste
 
 ![balloon tip empty clipboad](Screenshots/balloon-tip-empty-clipboard-2023-31-24-23-31-44.png)
 
-![balloon tip multiple lines](Screenshots/balloon-tip-multiple-lines-2023-12-25-23-12-53.png)
+![balloon tip too many digit characters](Screenshots/balloon-tip-too-many-characters-2023-30-26-20-30-36.png)
+
+![balloon tip too many non digit characters](Screenshots/balloon-tip-too-many-non-digit-characters-2023-07-26-20-07-41.png)
 
 # Buy me a coffee
 

@@ -9,7 +9,7 @@
 
     .NOTES
     Author:             Martin Heusser | M365 Apps & Services MVP
-    Version:            1.0.5
+    Version:            1.0.6
     Changes:            2023-10-24
                         Add hint if clipboard is empty
                         Improve regex matching, add code to change 00 to +
@@ -19,6 +19,9 @@
                         2023-10-25
                         Improve regular expressions, improve message hints
                         Add support for 1-4 digit extensions
+
+                        2023-10-26
+                        Improve message hints
     Sponsor Project:    https://github.com/sponsors/mozziemozz
     Website:            https://heusser.pro
 
@@ -88,15 +91,21 @@ if ($phoneNumber -notmatch '^(\d{1,}|(\+\d{5,}))$' -or $phoneNumber.Length -gt 1
         # Check if $phoneNumber is null or whitespace
         if (!$originalClipboardValue) {
 
-            $messageClipboardContent = "Clipboard is empty."
+            $messageClipboardContent = "Clipboard is empty"
 
         }
 
         else {
 
-            if ($clipboard.GetType().BaseType.Name -eq "Array") {
+            if ($phoneNumber.Length -gt 16) {
 
-                $messageClipboardContent = "Clipboard contains multiple lines."
+                $messageClipboardContent = "Too many digit characters"
+
+            }
+
+            elseif ($nonDigitCount -ge $digitCount -and $phoneNumber -match '^(\d{1,}|(\+\d{5,}))$') {
+
+                $messageClipboardContent = "Too many non-digit characters"
 
             }
 
@@ -140,3 +149,7 @@ else {
     Start-Process ms-teams "https://teams.microsoft.com/l/call/0/0?users=4:$phoneNumber"
 
 }
+
+# Write-Host "Phonenumber:    " $phoneNumber
+# Write-Host "Clipboard:      " $clipboard
+# Write-Host "Message:        " $messageClipboardContent
