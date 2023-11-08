@@ -1,4 +1,4 @@
-﻿# Version: 2.3.5
+﻿# Version: 2.3.6
 
 # Set to true if script is executed locally
 $localTestMode = $true
@@ -643,6 +643,14 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
             $operatorName = $matchingCsOnlineNumber.PstnPartnerName
 
             $numberType = $matchingCsOnlineNumber.NumberType
+
+            if ($numberType -eq "DirectRouting") {
+
+                $directRoutingNumberIndex = $allDirectRoutingNumbers.PhoneNumber.IndexOf($phoneNumber)
+                $operatorName = $allDirectRoutingNumbers.Operator[$directRoutingNumberIndex]
+
+            }
+
             $city = $matchingCsOnlineNumber.City
 
             if ($matchingCsOnlineNumber.IsoCountryCode) {
