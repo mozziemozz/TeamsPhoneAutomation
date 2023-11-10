@@ -1,7 +1,9 @@
-﻿# Version: 2.3.6
+﻿# Version: 2.3.7
 
 # Set to true if script is executed locally
 $localTestMode = $true
+
+$syncTeamsNumbersToEntraIdBusinessPhones = $true
 
 function Get-AllSPOListItems {
     param (
@@ -141,7 +143,7 @@ $existingSharePointLists = (Invoke-RestMethod -Method Get -Headers $Header -Uri 
 # $userInformationListId = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?`$filter=displayName eq '$localizedUserInformationList'").value.id
 
 # From: https://stackoverflow.com/questions/61143146/how-to-get-user-from-user-field-lookupid
-$userInformationListId = ((Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?select=id,name,system").value | Where-Object {$_.name -eq "users"}).id
+$userInformationListId = ((Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?select=id,name,system").value | Where-Object { $_.name -eq "users"  }).id
 
 # Retrieve all list items
 . Get-AllSPOListItems -ListId $userInformationListId
@@ -153,7 +155,7 @@ if ($existingSharePointLists.name -contains $MsListName) {
 
     Write-Output "A list with the name $MsListName already exists in site $($sharePointSite.name). No new list will be created."
 
-    $sharePointListId = ($existingSharePointLists | Where-Object {$_.Name -eq $MsListName}).id
+    $sharePointListId = ($existingSharePointLists | Where-Object { $_.Name -eq $MsListName }).id
 
 }
 
@@ -193,7 +195,7 @@ if ($sharePointListItems) {
 
     # Unassign numbers
 
-    foreach ($reservedNumber in ($sharePointListItems | Where-Object {$_.Status -eq "Remove Pending" -and $_.User_x0020_Principal_x0020_Name -ne "Unassigned"})) {
+    foreach ($reservedNumber in ($sharePointListItems | Where-Object { $_.Status -eq "Remove Pending" -and $_.User_x0020_Principal_x0020_Name -ne "Unassigned" })) {
 
         Write-Output "Trying to remove the number $($reservedNumber.Title) from user $($reservedNumber.User_x0020_Principal_x0020_Name)..."
 
@@ -207,9 +209,9 @@ if ($sharePointListItems) {
 
     # Assign reserved numbers
 
-    foreach ($reservedNumber in ($sharePointListItems | Where-Object {($_.Status -match "Reserved" -or $_.Status -eq "Assignment Error") -and ($_.UserProfileLookupId -ne $null -or $_.User_x0020_Principal_x0020_Name -ne "Unassigned")})) {
+    foreach ($reservedNumber in ($sharePointListItems | Where-Object { ($_.Status -match "Reserved" -or $_.Status -eq "Assignment Error") -and ($_.UserProfileLookupId -ne $null -or $_.User_x0020_Principal_x0020_Name -ne "Unassigned") })) {
 
-        $userPrincipalName = ($userLookupIds | Where-Object {$_.UserSelection -eq $reservedNumber.UserProfileLookupId}).Username
+        $userPrincipalName = ($userLookupIds | Where-Object { $_.UserSelection -eq $reservedNumber.UserProfileLookupId }).Username
 
         if (!$userPrincipalName) {
 
@@ -275,7 +277,7 @@ if ($sharePointListItems) {
 
                 Write-Output "User $userPrincipalName is not available in the tenant. Number $($reservedNumber.Title) will not be assigned."
 
-                ($sharePointListItems | Where-Object {$_.Title -eq $reservedNumber.Title}).Status = "Assignment Error"
+                ($sharePointListItems | Where-Object { $_.Title -eq $reservedNumber.Title }).Status = "Assignment Error"
 
                 $assignReservedNumber = $false
 
@@ -287,7 +289,7 @@ if ($sharePointListItems) {
 
             Write-Output "User $userPrincipalName is not available in the tenant. Number $($reservedNumber.Title) will not be assigned."
 
-            ($sharePointListItems | Where-Object {$_.Title -eq $reservedNumber.Title}).Status = "Assignment Error"
+            ($sharePointListItems | Where-Object { $_.Title -eq $reservedNumber.Title }).Status = "Assignment Error"
 
             $assignReservedNumber = $false
 
@@ -455,7 +457,7 @@ if ($sharePointListItems) {
 
                 }
 
-                ($sharePointListItems | Where-Object {$_.Title -eq $reservedNumber.Title}).Status = "Assignment Error"
+                ($sharePointListItems | Where-Object { $_.Title -eq $reservedNumber.Title }).Status = "Assignment Error"
 
             }
 
@@ -466,7 +468,7 @@ if ($sharePointListItems) {
 }
 
 # Add leading plus ("+") to all numbers
-$allDirectRoutingNumbers | ForEach-Object {$_.PhoneNumber = "+$($_.PhoneNumber)" }
+$allDirectRoutingNumbers | ForEach-Object { $_.PhoneNumber = "+$($_.PhoneNumber)" }
 
 # Get CsOnline Numbers
 $allCsOnlineNumbers = . Get-CsOnlineNumbers
@@ -602,6 +604,34 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
             $teamsPhoneUserLineUriPretty = $prettyNumbers.formatted[$teamsPhoneUserLineUriPrettyIndex]
 
+            if ($syncTeamsNumbersToEntraIdBusinessPhones -eq $true) {
+
+                $entraIdUser = Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/users/$($teamsPhoneUser.Identity)?`$select=id,userPrincipalName,businessPhones"
+
+                if ($entraIdUser.businessPhones[0] -ne $teamsPhoneUserLineUriPretty) {
+
+                    Write-Output "User $($teamsPhoneUser.UserPrincipalName) has a different phone number in Entra ID: '$($entraIdUser.businessPhones[0])'. Trying to update it to $teamsPhoneUserLineUriPretty..."
+
+                    $body = @{businessPhones = @($teamsPhoneUserLineUriPretty) }
+
+                    Invoke-RestMethod -Method PATCH -Headers $Header -Body ($body | ConvertTo-Json) -ContentType "application/json" -Uri "https://graph.microsoft.com/v1.0/users/$($entraIdUser.id)"
+
+                    if ($?) {
+
+                        Write-Output "Phone number has been successfully changed to $($teamsPhoneUserLineUriPretty) for user $($teamsPhoneUser.UserPrincipalName)"
+
+                    }
+
+                    else {
+
+                        Write-Output "Error while trying to change phone number to $($teamsPhoneUserLineUriPretty) for user $($teamsPhoneUser.UserPrincipalName)"
+
+                    }
+
+                }
+
+            }
+
         }
 
         if ($teamsPhoneUser.FeatureTypes -contains "VoiceApp") {
@@ -638,7 +668,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         if ($allCsOnlineNumbers.TelephoneNumber -contains $phoneNumber) {
 
-            $matchingCsOnlineNumber = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq ($teamsPhoneUser.LineUri).Replace("tel:", "")})
+            $matchingCsOnlineNumber = ($allCsOnlineNumbers | Where-Object { $_.TelephoneNumber -eq ($teamsPhoneUser.LineUri).Replace("tel:", "") })
 
             $operatorName = $matchingCsOnlineNumber.PstnPartnerName
 
@@ -669,7 +699,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 
         else {
 
-            $assignedDirectRoutingNumberCity = ($allCsOnlineNumbers | Where-Object {$_.TelephoneNumber -eq $phoneNumber}).City
+            $assignedDirectRoutingNumberCity = ($allCsOnlineNumbers | Where-Object { $_.TelephoneNumber -eq $phoneNumber }).City
 
             $directRoutingNumberIndex = $allDirectRoutingNumbers.PhoneNumber.IndexOf($phoneNumber)
             $operatorName = $allDirectRoutingNumbers.Operator[$directRoutingNumberIndex]
@@ -703,7 +733,7 @@ foreach ($teamsPhoneUser in $allTeamsPhoneUsers) {
 $unassignedRoutingRules = Get-CsTeamsUnassignedNumberTreatment
 
 # Get all unassigned Calling Plan and Operator Connect phone numbers or all conference assigned numbers
-foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$_.PstnAssignmentStatus -eq "ConferenceAssigned" -or ($null -eq $_.AssignedPstnTargetId -and $_.NumberType -ne "DirectRouting")}) {
+foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object { $_.PstnAssignmentStatus -eq "ConferenceAssigned" -or ($null -eq $_.AssignedPstnTargetId -and $_.NumberType -ne "DirectRouting") }) {
 
     $csOnlineNumberDetails = New-Object -TypeName psobject
 
@@ -817,7 +847,7 @@ foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object {$_.PstnAssignmen
 }
 
 # Get all unassigned Direct Routing Numbers
-$directRoutingNumbers = $allDirectRoutingNumbers | Where-Object {$allTeamsPhoneUserDetails."Title" -notcontains $_.PhoneNumber }
+$directRoutingNumbers = $allDirectRoutingNumbers | Where-Object { $allTeamsPhoneUserDetails."Title" -notcontains $_.PhoneNumber }
 
 foreach ($directRoutingNumber in $directRoutingNumbers) {
 
