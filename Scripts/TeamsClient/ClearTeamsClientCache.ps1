@@ -6,8 +6,8 @@
     Clears the Teams client cache for whichever Teams version is currently in use while retaining the custom backgrounds.
 
     Authors:            Martin Heusser | MVP
-    Version:            1.0.0
-    Changelog:          2023-11-21: Initial release
+    Version:            1.0.1
+    Changelog:          2023-12-01: Initial release
 
     .PARAMETER Name
         None.
@@ -23,92 +23,114 @@
 
 #>
 
-$teamsProcesses = Get-Process -Name *Teams*
+if (!(Test-Path -Path "$env:APPDATA\Microsoft\Teams") -and !(Test-Path -Path "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe")) {
 
-foreach ($process in $teamsProcesses) {
+    Write-Host "Cache folders for either Teams version could not be found." -ForegroundColor Magenta
 
-    Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
+    Read-Host "Press any key to exit..."
+    Exit
 
 }
 
-Start-Sleep -Seconds 10
+else {
 
-switch ($teamsProcesses[0].ProcessName) {
+    $teamsProcesses = Get-Process -Name *Teams*
+
+    if ($teamsProcesses) {
+
+        Write-Host "Stopping Teams processes..." -ForegroundColor Magenta
+
+        foreach ($process in $teamsProcesses) {
+
+            Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
+
+        }
+
+        Start-Sleep -Seconds 10
+
+        switch ($teamsProcesses[0].ProcessName) {
     
-    "ms-teams" {
+            "ms-teams" {
 
-        Write-Host "New Teams is in use" -ForegroundColor Cyan
+                Write-Host "New Teams is in use" -ForegroundColor Cyan
 
-        $backgrounds = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\Backgrounds\Uploads"
+                $backgrounds = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\Backgrounds\Uploads"
 
-        $tempFiles = @()
+                $tempFiles = @()
 
-        foreach ($background in $backgrounds) {
+                foreach ($background in $backgrounds) {
 
-            $tempFiles += @{
-                FileName    = $background.Name
-                FullName    = $background.FullName
-                FileContent = [System.IO.File]::ReadAllBytes($background.FullName)
+                    $tempFiles += @{
+                        FileName    = $background.Name
+                        FullName    = $background.FullName
+                        FileContent = [System.IO.File]::ReadAllBytes($background.FullName)
+                    }
+
+                }
+
+                Remove-Item -Path "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams" -Recurse -Force
+
+                New-Item -Path "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams" -ItemType Directory
+
+                New-Item -Path "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\Backgrounds" -ItemType Directory
+
+                New-Item -Path "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\Backgrounds\Uploads" -ItemType Directory
+
+                foreach ($tempFile in $tempFiles) {
+
+                    [System.IO.File]::WriteAllBytes($tempFile.FullName, $tempFile.FileContent)
+
+                }
+
+                Start-Process ms-teams.exe
+
+            }
+
+            "Teams" {
+
+                Write-Host "Old Teams is in use" -ForegroundColor Cyan
+
+                $backgrounds = Get-ChildItem -Path "$env:APPDATA\Microsoft\Teams\Backgrounds\Uploads"
+
+                $tempFiles = @()
+
+                foreach ($background in $backgrounds) {
+
+                    $tempFiles += @{
+                        FileName    = $background.Name
+                        FullName    = $background.FullName
+                        FileContent = [System.IO.File]::ReadAllBytes($background.FullName)
+                    }
+
+                }
+
+                Remove-Item -Path "$env:APPDATA\Microsoft\Teams" -Recurse -Force
+
+                New-Item -Path "$env:APPDATA\Microsoft\Teams" -ItemType Directory
+
+                New-Item -Path "$env:APPDATA\Microsoft\Teams\Backgrounds" -ItemType Directory
+
+                New-Item -Path "$env:APPDATA\Microsoft\Teams\Backgrounds\Uploads" -ItemType Directory
+
+                foreach ($tempFile in $tempFiles) {
+
+                    [System.IO.File]::WriteAllBytes($tempFile.FullName, $tempFile.FileContent)
+
+                }
+
+                Set-Location "$env:LOCALAPPDATA\Microsoft\Teams"
+                Start-Process -File "$env:LOCALAPPDATA\Microsoft\Teams\Update.exe" -ArgumentList '--processStart "Teams.exe"'
+
+            }
+
+            Default {
             }
 
         }
 
-        Remove-Item -Path "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams" -Recurse -Force
-
-        New-Item -Path "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams" -ItemType Directory
-
-        New-Item -Path "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\Backgrounds" -ItemType Directory
-
-        New-Item -Path "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\Backgrounds\Uploads" -ItemType Directory
-
-        foreach ($tempFile in $tempFiles) {
-
-            [System.IO.File]::WriteAllBytes($tempFile.FullName, $tempFile.FileContent)
-
-        }
-
-        Start-Process ms-teams.exe
-
     }
 
-    "Teams" {
-
-        Write-Host "Old Teams is in use" -ForegroundColor Cyan
-
-        $backgrounds = Get-ChildItem -Path "$env:APPDATA\Microsoft\Teams\Backgrounds\Uploads"
-
-        $tempFiles = @()
-
-        foreach ($background in $backgrounds) {
-
-            $tempFiles += @{
-                FileName    = $background.Name
-                FullName    = $background.FullName
-                FileContent = [System.IO.File]::ReadAllBytes($background.FullName)
-            }
-
-        }
-
-        Remove-Item -Path "$env:APPDATA\Microsoft\Teams" -Recurse -Force
-
-        New-Item -Path "$env:APPDATA\Microsoft\Teams" -ItemType Directory
-
-        New-Item -Path "$env:APPDATA\Microsoft\Teams\Backgrounds" -ItemType Directory
-
-        New-Item -Path "$env:APPDATA\Microsoft\Teams\Backgrounds\Uploads" -ItemType Directory
-
-        foreach ($tempFile in $tempFiles) {
-
-            [System.IO.File]::WriteAllBytes($tempFile.FullName, $tempFile.FileContent)
-
-        }
-
-        Set-Location "$env:LOCALAPPDATA\Microsoft\Teams"
-        Start-Process -File "$env:LOCALAPPDATA\Microsoft\Teams\Update.exe" -ArgumentList '--processStart "Teams.exe"'
-
-    }
-
-    Default {
+    else {
 
         Write-Host "Neither version of Teams is running. Please start Teams and run this script again." -ForegroundColor Magenta
 
