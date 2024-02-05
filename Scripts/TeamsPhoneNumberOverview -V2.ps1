@@ -1,7 +1,18 @@
-﻿# Version: 2.3.7
+﻿# Version: 2.3.8
 
-# Set to true if script is executed locally
-$localTestMode = $true
+if ($host.Name -eq "Visual Studio Code Host") {
+
+    $localTestMode = $true
+
+}
+
+else {
+
+    $localTestMode = $false
+
+
+
+}
 
 $syncTeamsNumbersToEntraIdBusinessPhones = $true
 
