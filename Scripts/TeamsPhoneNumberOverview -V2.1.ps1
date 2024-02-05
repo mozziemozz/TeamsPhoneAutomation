@@ -1,4 +1,4 @@
-﻿# Version: 2.3.8
+﻿# Version: 2.3.9
 
 param
 (
@@ -67,7 +67,6 @@ switch ($localTestMode) {
         $runBookDateTime = (Get-Date).ToUniversalTime()
         Write-Output "Runbook start time: $runBookDateTime (UTC)"
 
-
         # Import external functions
         . .\Functions\Connect-MsTeamsServicePrincipal.ps1
         . .\Functions\Connect-MgGraphHTTP.ps1
@@ -115,13 +114,29 @@ switch ($localTestMode) {
         # Get previous total number count
         $totalNumberCount = Get-AutomationVariable -Name "TeamsPhoneNumberOverview_TotalNumberCount"
 
+        # Get webhook data
+        $runbookBody = (ConvertFrom-Json -InputObject $WebhookData.RequestBody)
+        
+        $runbookBody
+
+        if (!$runbookBody) {
+
+            Write-Output "Sleeping for 120s to simulate job already running..."
+            Start-Sleep -Seconds 120
+
+        }
+
         # Define Azure environment variables
         $automationAccountName = "mzz-automation-account-014"
         $resourceGroupName = "mzz-rmg-013"
-        $runbookName = "Format-TeamsPhoneNumbers"
+        $pythonRunbookName = "Format-TeamsPhoneNumbers"
 
         # Connect to Azure environment
         . Connect-AzAccount -Identity -TenantId $TenantId
+
+        $queuedAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "TeamsPhoneNumberOverview" -Status "Queued"
+        $startingAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "TeamsPhoneNumberOverview" -Status "Starting"
+        $runningAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "TeamsPhoneNumberOverview" -Status "Running"
 
         if ($startingAutomationJobs) {
 
@@ -143,9 +158,9 @@ switch ($localTestMode) {
 
             Start-Sleep -Seconds 30
 
-            $queuedAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "Update-TeamsPhoneNumbers" -Status "Queued"
-            $startingAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "Update-TeamsPhoneNumbers" -Status "Starting"
-            $runningAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "Update-TeamsPhoneNumbers" -Status "Running"
+            $queuedAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "TeamsPhoneNumberOverview" -Status "Queued"
+            $startingAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "TeamsPhoneNumberOverview" -Status "Starting"
+            $runningAutomationJobs = Get-AzAutomationJob -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName "TeamsPhoneNumberOverview" -Status "Running"
 
         }
 
@@ -162,7 +177,7 @@ switch ($localTestMode) {
                 TriggeredByUpn    = "$($runbookBody.TriggeredByUpn)"
                 JobAborted        = $true
             }
-
+            
             $flowURI = "https://prod-226.westeurope.logic.azure.com:443/workflows/1a8d77007d6441a787d83ffe04be3417/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=YyoNrQRn2ZhSmoG1UvtG5oVjL_EtSSc35x-_ZcWV7ow"
 
             Invoke-RestMethod -Uri $flowURI -Method POST -ContentType "application/json" -Body ($messageBody | ConvertTo-Json) -ErrorAction Stop
@@ -206,7 +221,7 @@ $existingSharePointLists = (Invoke-RestMethod -Method Get -Headers $Header -Uri 
 # $userInformationListId = (Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?`$filter=displayName eq '$localizedUserInformationList'").value.id
 
 # From: https://stackoverflow.com/questions/61143146/how-to-get-user-from-user-field-lookupid
-$userInformationListId = ((Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?select=id,name,system").value | Where-Object { $_.name -eq "users"  }).id
+$userInformationListId = ((Invoke-RestMethod -Method Get -Headers $Header -Uri "https://graph.microsoft.com/v1.0/sites/$($sharePointSite.id)/lists?select=id,name,system").value | Where-Object { $_.name -eq "users" }).id
 
 # Retrieve all list items
 . Get-AllSPOListItems -ListId $userInformationListId
@@ -609,7 +624,7 @@ switch ($localTestMode) {
 
             Write-Output "Starting python runbook"
 
-            Start-AzAutomationRunbook -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName $runbookName -MaxWaitSeconds 1000 -Wait
+            Start-AzAutomationRunbook -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -RunbookName $pythonRunbookName -MaxWaitSeconds 1000 -Wait
 
             Write-Output "Python runbook finished."
 
@@ -1232,6 +1247,7 @@ if ($runbookBody.InvokedByFunction -eq $true) {
     }
 
     $flowURI = "https://prod-226.westeurope.logic.azure.com:443/workflows/1a8d77007d6441a787d83ffe04be3417/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=YyoNrQRn2ZhSmoG1UvtG5oVjL_EtSSc35x-_ZcWV7ow"
+    
     Invoke-RestMethod -Uri $flowURI -Method POST -ContentType "application/json; encoding='utf8'" -Body ($messageBody | ConvertTo-Json) -ErrorAction Stop
 
 }
