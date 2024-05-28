@@ -74,7 +74,7 @@ switch ($localTestMode) {
         . .\Functions\Get-CsOnlineNumbers.ps1
 
         # Import variables
-        $MsListName = "Teams Phone Number Overview Demo V2"
+        $MsListName = "Teams Phone Number Overview Demo V14"
         $TenantId = Get-Content -Path .\.local\TenantId.txt
         $AppId = Get-Content -Path .\.local\AppId.txt
         $AppSecret = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Get-Content -Path .\.local\AppSecret.txt | ConvertTo-SecureString))) | Out-String
@@ -843,11 +843,11 @@ foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object { $_.PstnAssignme
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $csOnlineNumber.IsoCountryCode
     
     
-        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "Conference Bridge"
-        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" "Conference Bridge"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "$phoneNumber"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" -Value "$phoneNumber"
 
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value "Conference Bridge"
-        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value "Conference Bridge"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value "$phoneNumber"
 
     }
 
@@ -863,8 +863,8 @@ foreach ($csOnlineNumber in $allCsOnlineNumbers | Where-Object { $_.PstnAssignme
         $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $csOnlineNumber.IsoCountryCode
     
     
-        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "Unassigned"
-        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" "Unassigned"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "$phoneNumber"
+        $csOnlineNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" -Value "$phoneNumber"
     
         if ($csOnlineNumber.Capability -contains "UserAssignment") {
     
@@ -959,7 +959,7 @@ foreach ($directRoutingNumber in $directRoutingNumbers) {
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Country" -Value $country
 
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Name" -Value "Unassigned"
-    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" "Unassigned"
+    $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "User_x0020_Principal_x0020_Name" -Value "$phoneNumber"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "Account_x0020_Type" -Value "User Account, Resource Account"
     $directRoutingNumberDetails | Add-Member -MemberType NoteProperty -Name "UserId" -Value "Unassigned"
 
