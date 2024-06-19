@@ -16,19 +16,32 @@
 
 #>
 
-$flowFiles = Get-ChildItem -Path .\ -Recurse -File -Include "definition.json"
+[CmdletBinding()]
+param (
+    [Parameter(Mandatory = $true)]
+    [string]
+    $FilePath,
+    [Parameter(Mandatory = $true)]
+    [string]
+    $OldDomain,
+    [Parameter(Mandatory = $true)]
+    [string]
+    $NewDomain,
+    [Parameter(Mandatory = $false)]
+    [string]
+    $OldSharePointUrl,
+    [Parameter(Mandatory = $false)]
+    [string]
+    $NewSharePointUrl
+)
 
-$oldDomain = ""
-$newDomain = ""
+$flowFiles = Get-ChildItem -Path $filePath -Recurse -File -Include "definition.json"
 
 $guidMatch = '"([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"'
 $anonymousGuid = '"00000000-0000-0000-0000-000000000000"'
 
 $channelIdMatch = '(19:[0-9a-fA]{32}@thread\.tacv2)'
 $anonymousChannelId = '19:00000000000000000000000000000000@thread.tacv2'
-
-$oldSharePointUrl = "https://.sharepoint.com"
-$newSharePointUrl = "https://.sharepoint.com"
 
 foreach ($file in $flowFiles) {
 
