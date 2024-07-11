@@ -66,4 +66,6 @@ $mgUserMatchesBusinessPhone = (Invoke-MgGraphRequest -Method Get -Uri "https://g
 $mobileNumberUrlSafe2 = "+41 79 456 78 91".Replace("+", "%2B")
 $mgUserMatchesMobilePhone = (Invoke-MgGraphRequest -Method Get -Uri "https://graph.microsoft.com/v1.0/users?`$filter=mobilePhone in ['$mobileNumberUrlSafe','$mobileNumberUrlSafe2']&`$count=true" -ContentType "application/json" -Headers $header).value
 
-
+# Convert the results to PS custom objects
+$mgUserMatchesMobilePhone = $mgUserMatchesMobilePhone | ConvertTo-Json | ConvertFrom-Json
+$mgUserMatchesBusinessPhone = $mgUserMatchesBusinessPhone | ConvertTo-Json | ConvertFrom-Json
