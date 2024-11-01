@@ -259,16 +259,16 @@ Write-Host "Adding the required Microsoft Graph permissions to $AADAppRegistrati
 
 $newAADServicePrincipalObjectId = ((npx m365 aad sp add --appId $newAppId | ConvertFrom-Json).Id).TrimEnd()
 
-npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "Organization.Read.All" --appId $newAppId
-npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "User.ReadWrite.All" --appId $newAppId
-npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "Channel.Delete.All" --appId $newAppId
-npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "ChannelSettings.ReadWrite.All" --appId $newAppId
-npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "Group.ReadWrite.All" --appId $newAppId
-npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "ChannelMember.ReadWrite.All" --appId $newAppId
-npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "AppCatalog.ReadWrite.All" --appId $newAppId
-npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "TeamSettings.ReadWrite.All" --appId $newAppId
-npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "Sites.Manage.All" --appId $newAppId
-npx m365 aad approleassignment add --resource "Microsoft Graph" --scope "RoleManagement.ReadWrite.Directory" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scopes "Organization.Read.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scopes "User.ReadWrite.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scopes "Channel.Delete.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scopes "ChannelSettings.ReadWrite.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scopes "Group.ReadWrite.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scopes "ChannelMember.ReadWrite.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scopes "AppCatalog.ReadWrite.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scopes "TeamSettings.ReadWrite.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scopes "Sites.Manage.All" --appId $newAppId
+npx m365 aad approleassignment add --resource "Microsoft Graph" --scopes "RoleManagement.ReadWrite.Directory" --appId $newAppId
 
 $AppId = Get-Content -Path .\.local\AppId.txt | Out-String
 $AppSecret = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Get-Content -Path .\.local\AppSecret.txt | ConvertTo-SecureString))) | Out-String

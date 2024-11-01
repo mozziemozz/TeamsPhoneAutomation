@@ -7,8 +7,9 @@
     This script gets attendance report of Teams meetings as an Entra ID app without a signed in user.
 
     Author:             Martin Heusser
-    Version:            1.0.0
+    Version:            1.0.1
     Changelog:          2024-10-05: Initial release
+                        2024-11-01: Add meeting join count and all join/leave date times
     
     Website:            https://heusser.pro
     Blog Post:          https://heusser.pro/p/get-microsoft-teams-meeting-attendance-report-through-graph-api-lhpctbnzht7z/
@@ -84,6 +85,9 @@ function Get-TeamsAttendanceReportAsApp {
 
     $onlineMeeting = Get-MgUserOnlineMeeting -UserId $userId -Filter "joinMeetingIdSettings/joinMeetingId eq '$joinMeetingId'"
 
+    # $joinWebUrl = ''
+    # $onlineMeeting = Get-MgUserOnlineMeeting -UserId $userId -Filter "joinWebUrl eq '$joinWebUrl'"
+
     if (!$onlineMeeting) {
 
         Write-Host "Online meeting with join meeting id '$joinMeetingId' not found. Try again in a couple of seconds..." -ForegroundColor Red
@@ -98,13 +102,25 @@ function Get-TeamsAttendanceReportAsApp {
 
     $attendanceReportOutput = @()
 
-    foreach ($attendanceReport in $attendanceReports) {
+    foreach ($attendanceReport in $attendanceReports[1]) {
 
         $attendanceReportSummary = @()
 
         $attendanceReportDetails = Get-MgUserOnlineMeetingAttendanceReport -UserId $userId -OnlineMeetingId $onlineMeeting.Id -MeetingAttendanceReportId $attendanceReport.Id -Expand "attendanceRecords"
 
         foreach ($attendanceReportRecord in $attendanceReportDetails.attendanceRecords) {
+
+            if ($attendanceReportRecord.AttendanceIntervals.DurationInSeconds -gt 1) {
+
+                $meetingJoinCount = $attendanceReportRecord.AttendanceIntervals.DurationInSeconds.Count
+
+            }
+
+            else{
+
+                $meetingJoinCount = 1
+
+            }
 
             $attendanceReportOutput += [pscustomobject]@{
 
@@ -113,8 +129,9 @@ function Get-TeamsAttendanceReportAsApp {
                 "Role"              = $attendanceReportRecord.role
                 "DurationInSeconds" = $attendanceReportRecord.totalAttendanceInSeconds
                 "Duration"          = [timespan]::FromSeconds($attendanceReportRecord.totalAttendanceInSeconds).ToString()
-                "JoinDateTime"      = $attendanceReportRecord.attendanceIntervals.joinDateTime
-                "LeaveDateTime"     = $attendanceReportRecord.attendanceIntervals.leaveDateTime
+                "JoinDateTime"      = $attendanceReportRecord.attendanceIntervals.joinDateTime -join ", "
+                "LeaveDateTime"     = $attendanceReportRecord.attendanceIntervals.leaveDateTime -join ", "
+                "MeetingJoinCount"  = $meetingJoinCount
                 "ReportId"          = $attendanceReport.id
 
             }

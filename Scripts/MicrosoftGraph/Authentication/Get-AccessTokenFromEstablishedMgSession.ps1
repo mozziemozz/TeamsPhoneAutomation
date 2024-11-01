@@ -19,3 +19,5 @@ $authHeader = @{
 # Make a request using Invoke-WebRequest with the access token from the session
 # This will allow you to download the profile photo to memory and store it in a variable as a byte array
 $profilePhoto = (Invoke-WebRequest -Uri "https://graph.microsoft.com/v1.0/users/$($userId)/photo/`$value" -Headers $authHeader).Content
+
+$alternativeRequest = (Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/me" -OutputType HttpResponseMessage).RequestMessage.Headers.Authorization.Parameter
