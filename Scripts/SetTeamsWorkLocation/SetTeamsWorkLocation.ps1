@@ -136,7 +136,7 @@ switch ($IpType) {
 }
 
 
-$endOfDay = ((Get-Date).ToUniversalTime().Date.AddDays(1).AddSeconds(-1).GetDateTimeFormats() | Where-Object {$_ -match "GMT"})[-1]
+$endOfDay = ((Get-Date).ToUniversalTime().Date.AddDays(1).AddSeconds(-1).GetDateTimeFormats() | Where-Object {$_ -match "0T"})[-1]
 
 $body = @"
 {
