@@ -349,7 +349,7 @@ foreach ($callRecord in $callRecords) {
         CallerNumber = $callerNumber
         CalledVoiceApp = $topLevelResourceAccount
         AllInvolvedVoiceApps = (($sessions | Where-Object { $_.callee.userAgent.Role -in @("skypeForBusinessCallQueues", "skypeForBusinessAutoAttendant") -and $_.callee.identity.user.displayName -ne "" }).callee.identity.user.displayName | Sort-Object startDateTime | Sort-Object -Unique) -join "; "
-        FinalVoiceApp = $finalResourceAccount
+        FinalVoiceApp = $finalResourceAccount | Where-Object { $_ -ne $null }
         CalledNumber = $calleeNumber
         StartDateTime = $callStartDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")
         EndDateTime = $callEndDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")
